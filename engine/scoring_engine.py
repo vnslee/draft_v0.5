@@ -1,215 +1,228 @@
 #!/usr/bin/env python3
-"""오토파이낸스 진출 추천 스코어링 엔진 (해커톤 더미 버전)
-country JSON × internal JSON → report JSON
-- Business 뷰: 매력도(X) + 진입난이도(Y), 항목별 기여
-- IT 뷰: 베이스라인 대비 match 유사도 → 구간표 감축률 → 비용
-- Integrated 뷰: 2축 매트릭스 좌표 + 사분면 (합성점수 없음)
-- confidence / due_diligence: tier 자동 파생
+"""오토파이낸스 진출 추천 스코어링 엔진 v2 (활성 항목 기반)
+- 활성 항목 목록(active_items)을 받아 그것만으로 계산
+- 기본 mvp, 화면에서 ext 항목 추가 시 재계산
+- 가중치는 활성 항목들 합=1로 재정규화
+- 인사이트 2층: insight_detail(country 단독) + insight_compare(스코어링)
 """
-import json, glob, os
+import json, os, re, sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, "data")
 
-def load(path):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+def load(p):
+    with open(p, encoding="utf-8") as f: return json.load(f)
+def items_map(c): return {it["item"]: it for it in c["items"]}
 
-def items_map(country):
-    return {it["item"]: it for it in country["items"]}
+import glob
+def load_country(code):
+    """국가 코드로 latest country 로드"""
+    return load(f"{DATA}/country/{code}/{code}_latest.json")
+def find_baseline(region):
+    """해당 region에서 is_baseline:true 인 국가의 latest 로드. 없으면 None"""
+    for latest in glob.glob(f"{DATA}/country/*/*_latest.json"):
+        c=load(latest)
+        if c.get("region")==region and c.get("is_baseline"):
+            return c
+    return None
 
-# ---------- 정규화 헬퍼 ----------
-def minmax(val, lo, hi, invert=False):
-    if hi == lo: return 50.0
-    n = (val - lo) / (hi - lo) * 100
-    n = max(0, min(100, n))
-    return round(100 - n if invert else n, 1)
-
-# 서열화(1~5) → 0~100
-def rank_norm(val, invert=False):
-    n = (val - 1) / 4 * 100
-    return round(100 - n if invert else n, 1)
+NORM_RANGE = {
+    "오토금융/리스 시장규모": (0, 2200000), "오토금융 성장률(CAGR)": (0, 12),
+    "금융 침투율(신차)": (0, 100), "평균 금리/APR": (0, 15),
+    "캡티브 강도(점유율)": (0, 100), "1위사 점유율": (0, 50),
+    "신차 판매대수": (0, 2200000), "금융 침투율(중고차)": (0, 100),
+    "구매 패턴(할부·리스 비중)": (0, 100), "법인세율": (0, 30),
+    "이자소득 원천징수(비거주자)": (0, 30), "배당 원천징수(비거주자)": (0, 30),
+    "법적 회수 소요기간": (0, 365),
+}
+def minmax(v, lo, hi, invert=False):
+    if hi==lo: return 50.0
+    n=max(0,min(100,(v-lo)/(hi-lo)*100))
+    return round(100-n if invert else n,1)
+def grade_norm(v, invert=False):
+    n=max(0,min(100,(v-1)/4*100))
+    return round(100-n if invert else n,1)
+def normalize(item):
+    v=item["value"]; name=item["item"]; inv=(item.get("direction")=="down")
+    if name in NORM_RANGE:
+        lo,hi=NORM_RANGE[name]; return minmax(v,lo,hi,inv)
+    if isinstance(v,(int,float)): return grade_norm(v,inv)
+    return 50.0
 
 def tier_conf(tiers):
-    """tier 가중평균 → 상/중/하. tier1=1.0 .. tier4=0.4"""
     if not tiers: return "하"
-    coef = {1:1.0, 2:0.8, 3:0.6, 4:0.4}
-    avg = sum(coef.get(t,0.4) for t in tiers)/len(tiers)
-    return "상" if avg>=0.85 else ("중" if avg>=0.65 else "하")
+    coef={1:1.0,2:0.8,3:0.6,4:0.4}
+    a=sum(coef.get(t,0.4) for t in tiers)/len(tiers)
+    return "상" if a>=0.85 else ("중" if a>=0.65 else "하")
+def renorm(weights):
+    s=sum(weights.values())
+    return {k:(v/s if s else 0) for k,v in weights.items()} if s else weights
 
-# ---------- Business 스코어링 ----------
-def score_business(country, weights):
-    im = items_map(country)
-    contrib, attractiveness, difficulty = [], 0.0, 0.0
-    diff_tiers, attr_tiers = [], []
+def resolve_active(country, internal, extra_items=None):
+    rules=internal.get("scoring_rules",{"default_active":["mvp"]})
+    default_tg=set(rules.get("default_active",["mvp"]))
+    excluded=set(rules.get("always_excluded",[]))
+    extra=set(extra_items or [])
+    active=[]
+    for it in country["items"]:
+        tg=it.get("tier_group","mvp")
+        if tg in excluded: continue
+        if tg in default_tg or it["item"] in extra:
+            active.append(it)
+    return active
 
-    # 매력도 항목 (정규화 기준은 데모용 고정 범위)
-    attr_specs = {
-        "오토금융/리스 시장규모": (im["오토금융/리스 시장규모"]["value"], 0, 100000, False),  # USD/PLN 혼재이나 데모용
-        "오토금융 성장률(CAGR)": (im["오토금융 성장률(CAGR)"]["value"], 0, 12, False),
-        "금융 침투율(신차)": (im["금융 침투율(신차)"]["value"], 0, 100, False),
-        "평균 금리/APR": (im["평균 금리/APR"]["value"], 0, 15, False),
-    }
-    for name,(raw,lo,hi,inv) in attr_specs.items():
-        w = weights[name]; norm = minmax(raw,lo,hi,inv); wtd = round(norm*w,1)
-        attractiveness += wtd; attr_tiers.append(im[name]["tier"])
-        contrib.append({"axis":"attractiveness","item":name,"raw":raw,"normalized":norm,"weight":w,"weighted":wtd,"tier":im[name]["tier"]})
+def make_flag(match, weight):
+    if weight>=0.25 and match<60: return "cost_driver"
+    if match>=90: return "strength"
+    if match<50: return "gap"
+    return None
+def it_compare_insight(item, match, weight, bname, flag, tier):
+    if flag=="cost_driver": s=f"가중치 비중 큰데 {bname} 대비 정합도 {match}% — 유사도를 끌어내림. 코어 재구축이 비용 핵심."
+    elif flag=="strength": s=f"{bname} 대비 정합도 {match}%로 거의 동일 — 재사용률 높음."
+    elif flag=="gap": s=f"{bname} 대비 정합도 {match}%로 격차 큼 — 추가 개발/현지화 필요."
+    elif match>=80: s=f"{bname} 대비 정합도 {match}% — 기존 자산 재사용 높음."
+    elif match>=50: s=f"{bname} 대비 정합도 {match}% — 부분 재사용, 일부 추가개발."
+    else: s=f"{bname} 대비 정합도 {match}% — 신규 구축에 가까움."
+    if item=="솔루션 벤더": s+=" 베이스라인 벤더 현지 존재 시 이식 토대 확보."
+    if item=="라이선스 체제(세그먼트별)": s+=" EU 규제 공통 기반이라 컴플라이언스 로직 재사용 가능."
+    return s+(" (저신뢰 — 실사 권장)" if tier and tier>=3 else "")
+def biz_compare_insight(axis, norm, tier):
+    if axis=="attractiveness":
+        s=f"정규화 {norm} — "+("매력도 강점." if norm>=80 else ("평이한 기여." if norm>=40 else "기여 낮음."))
+    else:
+        s=f"정규화 {norm} — "+("진입난이도 가중 요인." if norm>=60 else "난이도 부담 낮음.")
+    return s+(" (tier"+str(tier)+" 추정 — 실사 필요)" if tier and tier>=3 else "")
 
-    # 난이도 항목 (점유율 높을수록 난이도↑ = 정규화 그대로)
-    diff_specs = {
-        "캡티브 강도(점유율)": (im["캡티브 강도(점유율)"]["value"], 0, 100, False),
-        "1위사 점유율": (im["1위사 점유율"]["value"], 0, 50, False),
-    }
-    # 난이도 가중치는 두 항목 합=1로 재정규화(데모)
-    dw = {"캡티브 강도(점유율)":0.5, "1위사 점유율":0.5}
-    for name,(raw,lo,hi,inv) in diff_specs.items():
-        norm = minmax(raw,lo,hi,inv); wtd = round(norm*dw[name],1)
-        difficulty += wtd; diff_tiers.append(im[name]["tier"])
-        contrib.append({"axis":"difficulty","item":name,"raw":raw,"normalized":norm,"weight":dw[name],"weighted":wtd,"tier":im[name]["tier"]})
+def score_business(country, internal, active):
+    wall=internal["weights"]["business"]
+    attr=[it for it in active if it["category"]=="business" and it["role"]=="score" and it.get("axis")=="attractiveness"]
+    diff=[it for it in active if it["category"]=="business" and it["role"]=="score" and it.get("axis")=="difficulty"]
+    aw=renorm({it["item"]:wall.get(it["item"],0) for it in attr})
+    dw=renorm({it["item"]:wall.get(it["item"],0) for it in diff})
+    contrib=[]; A=0.0; D=0.0; tiers=[]
+    for it in attr:
+        nm=normalize(it); w=aw[it["item"]]; wd=round(nm*w,1); A+=wd; tiers.append(it["tier"])
+        contrib.append({"axis":"attractiveness","item":it["item"],"raw":it["value"],"normalized":nm,
+                        "weight":round(w,3),"weighted":wd,"tier":it["tier"],
+                        "insight_detail":it.get("insight",""),
+                        "insight_compare":biz_compare_insight("attractiveness",nm,it["tier"])})
+    for it in diff:
+        nm=normalize(it); w=dw[it["item"]]; wd=round(nm*w,1); D+=wd; tiers.append(it["tier"])
+        contrib.append({"axis":"difficulty","item":it["item"],"raw":it["value"],"normalized":nm,
+                        "weight":round(w,3),"weighted":wd,"tier":it["tier"],
+                        "insight_detail":it.get("insight",""),
+                        "insight_compare":biz_compare_insight("difficulty",nm,it["tier"])})
+    return round(A,1), round(D,1), contrib, tiers
 
-    return round(attractiveness,1), round(difficulty,1), contrib, attr_tiers+diff_tiers
-
-# ---------- IT 유사도 스코어링 (베이스라인 대비 match) ----------
-def score_it(country, baseline, weights):
-    im, bm = items_map(country), items_map(baseline)
-    contrib, similarity, tiers = [], 0.0, []
-
-    # 수치형(1~5 등급): match = 100 - |차이|/4*100
-    def match_numeric(a,b): return round(100 - abs(a-b)/4*100, 1)
-    # 문자형: 동일 카테고리면 100, 부분 정합이면 50 (데모 규칙)
-    def match_text(c_item):
-        # 솔루션: 패키지 동일 생태계면 높음. 여기선 PL '혼재' vs UK '패키지' → 50
-        v = str(c_item.get("value",""))
-        if "NETSOL" in v or "패키지" in v and "혼재" not in v: return 100.0
-        if "혼재" in v: return 50.0
-        return 60.0
-
-    specs = {
-        "신용정보(CB) 인프라": ("num", im["신용정보(CB) 인프라"]["value"], bm["신용정보(CB) 인프라"]["value"]),
-        "디지털 채널 성숙도": ("num", im["디지털 채널 성숙도"]["value"], bm["디지털 채널 성숙도"]["value"]),
-        "차량회수 절차 용이성": ("num", im["차량회수 절차 용이성"]["value"], bm["차량회수 절차 용이성"]["value"]),
-        "솔루션 벤더": ("txt", im["솔루션 벤더"], None),
-        "라이선스 체제(세그먼트별)": ("regime", None, None),  # 둘 다 PASS + EU 공통 → 70 (데모)
-    }
-    for name, spec in specs.items():
-        w = weights[name]
-        if spec[0]=="num":
-            m = match_numeric(spec[1], spec[2]); detail={"pl":spec[1],"uk":spec[2]}
-        elif spec[0]=="txt":
-            m = match_text(spec[1]); detail={"pl":str(spec[1].get("value"))[:20],"uk":"패키지(NETSOL)"}
+def match_numeric(a,b): return round(100-abs(a-b)/4*100,1)
+def match_solution(cand, base):
+    v=str(cand.get("value","")); bv=str(base.get("value",""))
+    bvendors=re.findall(r"[A-Z][A-Za-z]{3,}",bv)
+    present=any(x in v for x in bvendors)
+    if present and "혼재" not in v: return 100.0
+    if present: return 78.0
+    if "패키지" in v: return 50.0
+    if "자체" in v: return 30.0
+    return 50.0
+def score_it(country, baseline, internal, active):
+    wall=internal["weights"]["it"]; bm=items_map(baseline); bname=baseline["country_ko"]
+    its=[it for it in active if it["role"]=="score" and it.get("axis")=="similarity"]
+    w=renorm({it["item"]:wall.get(it["item"],0) for it in its})
+    contrib=[]; S=0.0; tiers=[]
+    for it in its:
+        name=it["item"]; b=bm.get(name); wi=w[name]
+        if name=="솔루션 벤더":
+            m=match_solution(it,bm["솔루션 벤더"]); detail={"cand":str(it.get("value"))[:24],"baseline":str(bm["솔루션 벤더"].get("value"))[:24]}
+        elif name=="라이선스 체제(세그먼트별)":
+            m=70.0; detail={"note":"EU 규제 공통, 세그먼트 체제 상이"}
+        elif b and isinstance(it["value"],(int,float)) and isinstance(b["value"],(int,float)):
+            m=match_numeric(it["value"],b["value"]); detail={"cand":it["value"],"baseline":b["value"]}
         else:
-            m = 70.0; detail={"note":"EU 규제 공통, 세그먼트 체제 상이"}
-        wtd = round(m*w,1); similarity += wtd; tiers.append(im[name]["tier"])
-        contrib.append({"item":name,"match":m,"weight":w,"weighted":wtd,"tier":im[name]["tier"],**detail})
-
-    return round(similarity,1), contrib, tiers
+            m=60.0; detail={"note":"베이스라인 비교 불가, 기본값"}
+        wd=round(m*wi,1); S+=wd; tiers.append(it["tier"]); flag=make_flag(m,wi)
+        contrib.append({"item":name,"match":m,"weight":round(wi,3),"weighted":wd,"tier":it["tier"],"flag":flag,
+                        "insight_detail":it.get("insight",""),
+                        "insight_compare":it_compare_insight(name,m,wi,bname,flag,it["tier"]),**detail})
+    return round(S,1), contrib, tiers
 
 def discount_for(sim, brackets):
     for b in brackets:
-        if b["min"] <= sim <= b["max"]: return b["discount"]
+        if b["min"]<=sim<=b["max"]: return b["discount"]
     return 0.0
-
-def quadrant(attr, diff):
-    hi_attr = attr >= 50; lo_diff = diff < 50
-    if hi_attr and lo_diff: return "즉시 진출"
-    if hi_attr and not lo_diff: return "선별 진출"
-    if not hi_attr and lo_diff: return "기회 탐색"
-    return "JV/제휴 필요"
-
-# ---------- 게이트 평가 (통과 경로 존재 시 PASS) ----------
-def eval_gates(country):
-    im = items_map(country)
+def quadrant(a,d):
+    return ("즉시 진출" if a>=50 and d<50 else "선별 진출" if a>=50 else "기회 탐색" if d<50 else "JV/제휴 필요")
+def eval_gates(country, active):
     checks=[]; passed=True
-    gate_items = [it for it in country["items"] if it["role"]=="gate"]
-    for g in gate_items:
-        r = g.get("gate_result","PASS")
-        # tier3 이하 FAIL은 FLAG로 강등 (저신뢰로 탈락금지)
+    for g in [it for it in active if it["role"]=="gate"]:
+        r=g.get("gate_result","PASS")
         if r=="FAIL" and g.get("tier",4)>=3: r="FLAG"
         if r=="FAIL": passed=False
         checks.append({"item":g["item"],"scope":g.get("gate_scope"),"result":r,"tier":g.get("tier")})
     return passed, checks
+def due_diligence(country, active, th=3):
+    return [{"code":country["code"],"item":it["item"],"tier":it["tier"],"action":"1차 출처·실사 확인 필요"}
+            for it in active if it.get("tier",1)>=th]
 
-def due_diligence(country, threshold=3):
-    out=[]
-    for it in country["items"]:
-        if it.get("tier",1) >= threshold:
-            out.append({"code":country["code"],"item":it["item"],"tier":it["tier"],
-                        "action":"1차 출처(공식통계·실사) 확인 필요"})
-    return out
+def run(target_code, extra_items=None):
+    internal=load(f"{DATA}/internal/internal_latest.json")
+    cpath=f"{DATA}/country/{target_code}/{target_code}_latest.json"
+    if not os.path.exists(cpath):
+        raise SystemExit(f"[안내] {target_code} country 데이터 없음 — 먼저 조사(리서치)가 필요합니다.")
+    target=load_country(target_code)
+    region=target.get("region")
+    baseline=find_baseline(region)
+    if baseline is None:
+        raise SystemExit(f"[오류] region '{region}'의 베이스라인 국가(is_baseline:true) 없음")
+    if baseline["code"]==target_code:
+        raise SystemExit(f"[안내] {target_code}는 베이스라인 자신 — 비교 대상 아님")
+    bcode=baseline["code"]
+    asset=internal["country_assets"].get(bcode)
+    if asset is None:
+        raise SystemExit(f"[오류] internal.country_assets에 베이스라인 {bcode} 자산 없음")
 
-# ================= MAIN =================
-internal = load(f"{DATA}/internal/internal_latest.json")
-pl = load(f"{DATA}/country/PL/PL_latest.json")
-uk = load(f"{DATA}/country/UK/UK_latest.json")  # EU 베이스라인
+    active=resolve_active(target, internal, extra_items)
+    A,D,bc,bt=score_business(target, internal, active)
+    S,ic,it_t=score_it(target, baseline, internal, active)
+    disc=discount_for(S, internal["similarity_brackets"])
+    build=round(asset["build_cost"]*(1-disc),1)
+    months=round(asset["build_months"]*(1-disc*0.7),1)
+    maint=round(build*internal["maintenance_rate"],1)
+    pass_,checks=eval_gates(target, active)
+    ts=target.get("fetched_at","").replace(":","").replace("-","").replace("+0900","")[:13] or "ver"
+    rpt={
+      "report_id":f"rpt_{target_code}_2026-06-18T1500","created_at":"2026-06-18T15:00:00+09:00",
+      "target":target_code,"region":region,"baseline":bcode,
+      "active_items":[it["item"] for it in active],
+      "active_groups":sorted(set(it.get("tier_group") for it in active)),
+      "based_on":{"country_versions":{target_code:f"{target_code}_latest"},
+                  "baseline_versions":{region:f"{bcode}_latest"},
+                  "internal_version":internal.get("version"),"schema_version":"1.0"},
+      "gate_result":{target_code:{"passed":pass_,"checks":checks}},"gate_failed":[],
+      "views":{
+        "business":{"ranking":[{"code":target_code,"rank":1,"score":A,"difficulty":D,"quadrant":quadrant(A,D),
+                    "contributions":bc,"confidence":tier_conf(bt)}]},
+        "it":{"baseline":bcode,"ranking":[{"code":target_code,"rank":1,"similarity":S,
+                    "cost":{"baseline":bcode,"baseline_build":asset["build_cost"],"discount":disc,
+                            "build":build,"months":months,"maintenance_yr":maint,"unit":"GBP_M(데모)"},
+                    "contributions":ic,"confidence":tier_conf(it_t)}]},
+        "integrated":{"note":"합성점수 없음 — 2축 매트릭스 + 사분면",
+                    "ranking":[{"code":target_code,"rank":1,"attractiveness":A,"difficulty":D,"similarity":S,
+                    "bubble_cost":build,"quadrant":quadrant(A,D),
+                    "verdict":f"게이트 통과·사분면 '{quadrant(A,D)}'. {baseline['country_ko']} 대비 유사도 {S}로 {int(disc*100)}% 절감."}]}
+      },
+      "due_diligence":due_diligence(target, active)
+    }
+    out=f"{DATA}/report/rpt_{target_code}_2026-06-18T1500.json"
+    json.dump(rpt,open(out,"w",encoding="utf-8"),ensure_ascii=False,indent=2)
+    import shutil; shutil.copy(out,f"{DATA}/report/rpt_latest.json")
+    print(f"대상 {target_code}({region}) ↔ 베이스라인 {bcode} | 활성 {rpt['active_groups']} {len(active)}개")
+    print(f"매력도 {A} 난이도 {D} ({quadrant(A,D)}) | 유사도 {S} 감축 {int(disc*100)}% 구축비 {build}")
+    return rpt
 
-wb, wi = internal["weights"]["business"], internal["weights"]["it"]
-
-# --- PL 스코어링 (후보) ---
-attr, diff, b_contrib, b_tiers = score_business(pl, wb)
-sim, i_contrib, i_tiers = score_it(pl, uk, wi)
-disc = discount_for(sim, internal["similarity_brackets"])
-asset = internal["country_assets"]["UK"]
-build = round(asset["build_cost"]*(1-disc),1)
-months = round(asset["build_months"]*(1-disc*0.7),1)  # 기간은 비용보다 덜 줄어듦(데모)
-maint = round(build*internal["maintenance_rate"],1)
-
-pl_pass, pl_checks = eval_gates(pl)
-
-report = {
-    "report_id": "rpt_2026-06-18T1500",
-    "created_at": "2026-06-18T15:00:00+09:00",
-    "based_on": {
-        "country_versions": {"PL": "PL_2026-06-18T1432"},
-        "baseline_versions": {"EU": "UK_2026-06-18T1432"},
-        "internal_version": "internal_v1.2_2026-06-01",
-        "schema_version": "1.0"
-    },
-    "gate_result": {"PL": {"passed": pl_pass, "checks": pl_checks}},
-    "gate_failed": [],
-    "views": {
-        "business": {
-            "weights": wb,
-            "ranking": [{
-                "code":"PL","rank":1,"score":attr,"difficulty":diff,
-                "quadrant":quadrant(attr,diff),
-                "contributions":b_contrib,
-                "confidence":tier_conf(b_tiers)
-            }]
-        },
-        "it": {
-            "weights": wi,
-            "baseline":"UK",
-            "ranking": [{
-                "code":"PL","rank":1,"similarity":sim,
-                "cost":{"baseline":"UK","baseline_build":asset["build_cost"],
-                        "discount":disc,"build":build,"months":months,
-                        "maintenance_yr":maint,"unit":"GBP_M(데모)"},
-                "contributions":i_contrib,
-                "confidence":tier_conf(i_tiers)
-            }]
-        },
-        "integrated": {
-            "note":"합성점수 없음 — 2축 매트릭스 좌표 + 사분면",
-            "ranking": [{
-                "code":"PL","rank":1,
-                "attractiveness":attr,"difficulty":diff,"similarity":sim,
-                "bubble_cost":build,
-                "quadrant":quadrant(attr,diff),
-                "verdict":"성장성 높고 게이트 전부 통과. B2B 리스 무면허 경로로 우선 진입 권고."
-            }]
-        }
-    },
-    "due_diligence": due_diligence(pl)
-}
-
-out = f"{DATA}/report/rpt_2026-06-18T1500.json"
-with open(out,"w",encoding="utf-8") as f:
-    json.dump(report,f,ensure_ascii=False,indent=2)
-import shutil; shutil.copy(out, f"{DATA}/report/rpt_latest.json")
-
-print("=== 스코어링 결과 (PL, 베이스라인 UK) ===")
-print(f"매력도(X): {attr}  난이도(Y): {diff}  사분면: {quadrant(attr,diff)}")
-print(f"IT 유사도: {sim}  감축률: {disc*100:.0f}%")
-print(f"구축비: {asset['build_cost']} → {build} (GBP_M 데모)  기간: {months}M  연운영비: {maint}")
-print(f"게이트: {'PASS' if pl_pass else 'FAIL'}  실사항목: {len(report['due_diligence'])}개")
-print(f"→ {out}")
+if __name__=="__main__":
+    args=sys.argv[1:]
+    if not args:
+        raise SystemExit("사용법: python3 scoring_engine.py <국가코드> [추가항목...]\n예: python3 scoring_engine.py PL \"국외이전 제한\"")
+    code=args[0]; extra=args[1:] or None
+    if extra: print(f"[추가 항목: {extra}]")
+    run(code, extra)
