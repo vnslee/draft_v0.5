@@ -1,0 +1,306 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Hyundai Capital Diagnostic - Main Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "accent-red": "#E63946",
+                        "surface-bright": "#fbf9f9",
+                        "on-primary-fixed-variant": "#1c4489",
+                        "tertiary-fixed": "#ffdad8",
+                        "primary-fixed-dim": "#aec6ff",
+                        "inverse-surface": "#303031",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#005db7",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#92001c",
+                        "secondary-fixed": "#d6e3ff",
+                        "tertiary": "#4d000a",
+                        "inverse-primary": "#aec6ff",
+                        "primary-container": "#003478",
+                        "on-primary-container": "#7d9fe9",
+                        "primary-fixed": "#d8e2ff",
+                        "on-secondary-container": "#003268",
+                        "surface-dim": "#dbdad9",
+                        "surface-container-low": "#f5f3f3",
+                        "surface-border": "#DCDCDC",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e3e2e2",
+                        "surface-container": "#efeded",
+                        "secondary-fixed-dim": "#a9c7ff",
+                        "on-tertiary-fixed": "#410007",
+                        "surface-variant": "#e3e2e2",
+                        "on-tertiary-container": "#ff7576",
+                        "inverse-on-surface": "#f2f0f0",
+                        "outline": "#747782",
+                        "surface-light": "#F8F9FA",
+                        "text-secondary": "#555555",
+                        "on-primary-fixed": "#001a43",
+                        "surface-tint": "#395da2",
+                        "on-secondary-fixed": "#001b3d",
+                        "on-surface-variant": "#434751",
+                        "on-secondary-fixed-variant": "#00468c",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c4c6d2",
+                        "text-disabled": "#BEBEBE",
+                        "secondary-container": "#599bfe",
+                        "tertiary-fixed-dim": "#ffb3b1",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf9f9",
+                        "error-container": "#ffdad6",
+                        "surface": "#fbf9f9",
+                        "on-background": "#1b1c1c",
+                        "text-primary": "#000000",
+                        "surface-container-high": "#e9e8e7",
+                        "primary": "#00204e",
+                        "tertiary-container": "#750015",
+                        "on-surface": "#1b1c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+
+        /* Level 2 Card Shadow */
+        .shadow-level-2 {
+            box-shadow: 0 4px 8px rgba(0, 32, 78, 0.12);
+        }
+
+        /* Level 3 Modal Shadow */
+        .shadow-level-3 {
+            box-shadow: 0 12px 24px rgba(0, 32, 78, 0.16);
+        }
+
+        .backdrop-blur-modal {
+            backdrop-filter: blur(8px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #DCDCDC;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #747782;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden flex font-body-md">
+<!-- SideNavBar -->
+<!-- Main Content Area -->
+<div class="flex-grow flex flex-col h-screen overflow-hidden relative">
+    <!-- TopNavBar (Mobile Only for shell, but let's keep structural top bar for content) -->
+    <!-- Canvas (Dashboard Map View) -->
+    <main class="flex-grow relative bg-surface overflow-hidden">
+        <!-- Simulated Map Background -->
+        <!-- Overlay Content (Mocking the rest of the dashboard underneath) -->
+        <!-- MODAL BACKDROP & POPUP -->
+        <div class="absolute inset-0 z-50 flex items-center justify-center p-margin-mobile md:p-margin-desktop bg-on-surface/20 backdrop-blur-modal">
+            <!-- Regional Summary Popup (P3) -->
+            <div class="w-full max-w-4xl max-h-[90vh] rounded-xl shadow-level-3 border border-surface-border flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out] bg-surface-container-lowest">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-lg border-b border-surface-border flex-shrink-0">
+                    <div>
+                        <h2 class="font-headline-md text-headline-md text-primary">Regional Summary: APAC</h2>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Strategic diagnostic overview and planned expansion scoring.</p>
+                    </div>
+                    <button aria-label="Close modal" class="text-outline hover:text-primary transition-colors p-xs rounded-full hover:bg-surface-variant">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <!-- Modal Body (Scrollable) -->
+                <div class="p-lg overflow-y-auto flex-grow flex flex-col gap-xl">
+                    <!-- Section: Entered Countries (Bento style cards) -->
+                    <div>
+                        <div class="flex items-center gap-xs mb-md border-b border-surface-border pb-xs">
+                            <span class="material-symbols-outlined text-secondary text-[20px]">verified</span>
+                            <h3 class="font-headline-md text-[18px] text-primary">Active Operations</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                            <!-- Card 1 -->
+                            <div class="bg-surface-bright border border-surface-border rounded-lg p-md shadow-sm hover:shadow-level-2 transition-shadow cursor-default flex flex-col gap-sm">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-label-md text-label-md text-on-surface-variant uppercase">Korea, Rep.</div>
+                                    <span class="bg-secondary/10 text-secondary px-xs py-[2px] rounded font-label-sm text-label-sm">HQ</span>
+                                </div>
+                                <div class="font-headline-md text-[20px] text-primary">Seoul</div><div class="flex items-center gap-xs mt-xs"><div class="relative w-8 h-8 flex items-center justify-center"><svg class="w-full h-full -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" class="stroke-surface-border" stroke-width="3"></circle><circle cx="18" cy="18" r="16" fill="none" class="stroke-secondary" stroke-width="3" stroke-dasharray="100, 100"></circle></svg><span class="absolute text-[10px] font-bold text-secondary">100%</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Market Readiness</span></div>
+                                <div class="w-full bg-surface-border h-1 rounded-full mt-auto">
+                                    <div class="bg-secondary h-1 rounded-full w-full"></div>
+                                </div>
+                                <div class="font-label-sm text-label-sm text-text-secondary text-right">Established 1993</div>
+                            </div>
+                            <!-- Card 2 -->
+                            <div class="bg-surface-bright border border-surface-border rounded-lg p-md shadow-sm hover:shadow-level-2 transition-shadow cursor-default flex flex-col gap-sm">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-label-md text-label-md text-on-surface-variant uppercase">China</div>
+                                    <span class="bg-success/10 text-emerald-700 px-xs py-[2px] rounded font-label-sm text-label-sm">Stable</span>
+                                </div>
+                                <div class="font-headline-md text-[20px] text-primary">Beijing</div><div class="flex items-center gap-xs mt-xs"><div class="relative w-8 h-8 flex items-center justify-center"><svg class="w-full h-full -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" class="stroke-surface-border" stroke-width="3"></circle><circle cx="18" cy="18" r="16" fill="none" class="stroke-secondary" stroke-width="3" stroke-dasharray="85, 100"></circle></svg><span class="absolute text-[10px] font-bold text-secondary">85%</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Market Readiness</span></div>
+                                <div class="w-full bg-surface-border h-1 rounded-full mt-auto">
+                                    <div class="bg-secondary h-1 rounded-full w-[85%]"></div>
+                                </div>
+                                <div class="font-label-sm text-label-sm text-text-secondary text-right">Maturity: High</div>
+                            </div>
+                            <!-- Card 3 -->
+                            <div class="bg-surface-bright border border-surface-border rounded-lg p-md shadow-sm hover:shadow-level-2 transition-shadow cursor-default flex flex-col gap-sm">
+                                <div class="flex justify-between items-start">
+                                    <div class="font-label-md text-label-md text-on-surface-variant uppercase">Indonesia</div>
+                                    <span class="bg-secondary-container text-on-secondary-container px-xs py-[2px] rounded font-label-sm text-label-sm">Growth</span>
+                                </div>
+                                <div class="font-headline-md text-[20px] text-primary">Jakarta</div><div class="flex items-center gap-xs mt-xs"><div class="relative w-8 h-8 flex items-center justify-center"><svg class="w-full h-full -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" class="stroke-surface-border" stroke-width="3"></circle><circle cx="18" cy="18" r="16" fill="none" class="stroke-secondary" stroke-width="3" stroke-dasharray="60, 100"></circle></svg><span class="absolute text-[10px] font-bold text-secondary">60%</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Market Readiness</span></div>
+                                <div class="w-full bg-surface-border h-1 rounded-full mt-auto">
+                                    <div class="bg-secondary h-1 rounded-full w-[60%]"></div>
+                                </div>
+                                <div class="font-label-sm text-label-sm text-text-secondary text-right">Maturity: Mid</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Section: Quick-win scoring table for planned countries -->
+                    <div>
+                        <div class="flex items-center justify-between mb-md border-b border-surface-border pb-xs">
+                            <div class="flex items-center gap-xs">
+                                <span class="material-symbols-outlined text-secondary text-[20px]">radar</span>
+                                <h3 class="font-headline-md text-[18px] text-primary">Planned Expansion Scoring</h3>
+                            </div>
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">Data Refreshed: Today</span>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-surface-border">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                <tr class="bg-surface-light border-b border-surface-border">
+                                    <th class="py-sm px-md font-label-md text-label-md text-on-surface-variant uppercase w-16 text-center">Rank</th>
+                                    <th class="py-sm px-md font-label-md text-label-md text-on-surface-variant uppercase">Target Market</th>
+                                    <th class="py-sm px-md font-label-md text-label-md text-on-surface-variant uppercase text-right w-32">IT Readiness</th>
+                                    <th class="py-sm px-md font-label-md text-label-md text-on-surface-variant uppercase text-right w-32">Biz Difficulty</th>
+                                    <th class="py-sm px-md font-label-md text-label-md text-primary font-bold uppercase text-right w-32 bg-surface-variant/30">Total Score</th><th class="py-sm px-md font-label-md text-label-md text-on-surface-variant uppercase text-center w-24">Trend</th>
+                                </tr>
+                                </thead>
+                                <tbody class="font-body-md text-body-md">
+                                <tr class="border-b border-surface-border hover:bg-surface-bright transition-colors">
+                                    <td class="py-sm px-md text-center font-headline-md text-[16px] text-primary">1</td>
+                                    <td class="py-sm px-md">
+                                        <div class="font-bold text-primary">Vietnam</div>
+                                        <div class="font-label-sm text-label-sm text-on-surface-variant">Hanoi Hub</div>
+                                    </td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">8.4</td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">3.2</td>
+                                    <td class="py-sm px-md text-right font-headline-md text-[16px] text-secondary bg-surface-variant/20">84.5</td><td class="py-sm px-md text-center"><svg class="w-16 h-6 inline-block" viewBox="0 0 64 24"><polyline fill="none" stroke="#005db7" stroke-width="2" points="0,20 10,15 20,18 30,10 40,12 50,5 64,2"></polyline></svg></td>
+                                </tr>
+                                <tr class="border-b border-surface-border hover:bg-surface-bright transition-colors">
+                                    <td class="py-sm px-md text-center font-headline-md text-[16px] text-primary">2</td>
+                                    <td class="py-sm px-md">
+                                        <div class="font-bold text-primary">Thailand</div>
+                                        <div class="font-label-sm text-label-sm text-on-surface-variant">Bangkok Hub</div>
+                                    </td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">7.9</td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">4.1</td>
+                                    <td class="py-sm px-md text-right font-headline-md text-[16px] text-primary bg-surface-variant/20">78.2</td><td class="py-sm px-md text-center"><svg class="w-16 h-6 inline-block" viewBox="0 0 64 24"><polyline fill="none" stroke="#005db7" stroke-width="2" points="0,18 10,20 20,15 30,12 40,14 50,8 64,10"></polyline></svg></td>
+                                </tr>
+                                <tr class="hover:bg-surface-bright transition-colors">
+                                    <td class="py-sm px-md text-center font-headline-md text-[16px] text-primary">3</td>
+                                    <td class="py-sm px-md">
+                                        <div class="font-bold text-primary">Philippines</div>
+                                        <div class="font-label-sm text-label-sm text-on-surface-variant">Manila Hub</div>
+                                    </td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">6.5</td>
+                                    <td class="py-sm px-md text-right text-on-surface-variant">4.8</td>
+                                    <td class="py-sm px-md text-right font-headline-md text-[16px] text-primary bg-surface-variant/20">65.0</td><td class="py-sm px-md text-center"><svg class="w-16 h-6 inline-block" viewBox="0 0 64 24"><polyline fill="none" stroke="#005db7" stroke-width="2" points="0,22 10,20 20,21 30,18 40,19 50,15 64,16"></polyline></svg></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-xs text-right">
+                            <a class="font-label-md text-label-md text-secondary hover:underline flex items-center justify-end gap-xs" href="#">
+                                View Full Methodology <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Footer / Actions -->
+                <div class="p-md border-t border-surface-border flex justify-between items-center flex-shrink-0">
+                    <div class="font-label-sm text-label-sm text-text-secondary hidden sm:block">
+                        Confidential &amp; Proprietary
+                    </div>
+                    <div class="flex gap-sm w-full sm:w-auto justify-end">
+                        <button class="px-md py-sm rounded-lg font-label-md text-label-md text-primary hover:bg-surface-variant transition-colors border border-transparent">
+                            Detail View
+                        </button>
+                        <button class="px-md py-sm rounded-lg font-label-md text-label-md text-primary border border-primary hover:bg-primary/5 transition-colors">
+                            Report
+                        </button>
+                        <button class="px-md py-sm rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:scale-[0.98] transition-transform shadow-sm flex items-center gap-xs">
+                            Generate Report <span class="material-symbols-outlined text-[18px]">download</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+</style>
+
+
+</body></html>

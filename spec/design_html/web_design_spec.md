@@ -4,7 +4,7 @@
 
 ### Reference
 - https://github.com/uxjoseph/supanova-design-skill 를 통해 스킬 참조해서 사용
-- 현대캐피탈 공식 폰트 사용 가능 시 공식 폰트 사용
+- https://about.hyundaicapital.com/au/cintd/IRAUCI0101.hc 전체적인 디자인과 색감은 해당 사이트 참조(+현대캐피탈 CI 로고 사용)
 
 ### 화면 체계
 - 메인화면 (M1)
