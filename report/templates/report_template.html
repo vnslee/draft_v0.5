@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.target }} 국가 진단 보고서 - {{ report.report_id }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00204e;
+            --primary-container: #003478;
+            --secondary: #005db7;
+            --tertiary: #4d000a;
+            --surface: #fbf9f9;
+            --surface-variant: #e3e2e2;
+            --surface-dim: #dbdad9;
+            --outline: #747782;
+            --error: #ba1a1a;
+            --success: #2d6a4f;
+            --warning: #f77f00;
+            --info: #2f79d9;
+            --text-primary: #1b1c1c;
+            --text-secondary: #555555;
+            --text-disabled: #bebebe;
+            --border-color: #dcdcdc;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.16);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* 헤더 */
+        .report-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: white;
+            padding: 48px 64px;
+            border-bottom: 4px solid var(--secondary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .country-name {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .country-code {
+            font-size: 32px;
+            opacity: 0.8;
+        }
+
+        .header-meta {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .baseline-info {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .report-meta {
+            font-size: 13px;
+            opacity: 0.85;
+            line-height: 1.8;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        /* 내용 */
+        .report-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 64px 32px;
+        }
+
+        /* 탭 네비게이션 */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--surface-variant);
+            margin-bottom: 48px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            padding: 0 16px;
+        }
+
+        .tab-button {
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: var(--primary);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 섹션 */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        /* 카드 */
+        .card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 요약 섹션 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 12px 0;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .metric-unit {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .quadrant-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 12px;
+        }
+
+        .verdict-box {
+            background: linear-gradient(135deg, rgba(45, 106, 79, 0.1) 0%, rgba(47, 121, 217, 0.1) 100%);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+
+        .verdict-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .verdict-text {
+            font-size: 16px;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        /* 게이트 체크 */
+        .gate-container {
+            margin-bottom: 32px;
+        }
+
+        .gate-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border-left: 4px solid var(--border-color);
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .gate-item.pass {
+            border-left-color: var(--success);
+            background: rgba(45, 106, 79, 0.05);
+        }
+
+        .gate-item.fail {
+            border-left-color: var(--error);
+            background: rgba(186, 26, 26, 0.05);
+        }
+
+        .gate-item.flag {
+            border-left-color: var(--warning);
+            background: rgba(247, 127, 0, 0.05);
+        }
+
+        .gate-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .gate-content {
+            flex: 1;
+        }
+
+        .gate-item-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .gate-scope {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 컨트리뷰션 테이블 */
+        .contribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .contribution-table thead {
+            background: linear-gradient(135deg, var(--surface-variant) 0%, var(--surface-dim) 100%);
+        }
+
+        .contribution-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .contribution-table td {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .contribution-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 24px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--info) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .bar-label {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        /* 신뢰도 배지 */
+        .confidence-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .confidence-high {
+            background: rgba(45, 106, 79, 0.15);
+            color: var(--success);
+        }
+
+        .confidence-medium {
+            background: rgba(47, 121, 217, 0.15);
+            color: var(--info);
+        }
+
+        .confidence-low {
+            background: rgba(247, 127, 0, 0.15);
+            color: var(--warning);
+        }
+
+        /* 비용 추정 */
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .cost-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .cost-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .cost-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .cost-unit {
+            font-size: 11px;
+            color: var(--text-disabled);
+        }
+
+        /* 진도 바 */
+        .progress-item {
+            margin-bottom: 24px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-label-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-label-value {
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--surface-dim);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--info) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 인사이트 */
+        .insight-box {
+            background: linear-gradient(135deg, rgba(0, 52, 120, 0.05) 0%, rgba(47, 121, 217, 0.05) 100%);
+            border-left: 4px solid var(--secondary);
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .insight-label {
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 출처 */
+        .source-list {
+            list-style: none;
+        }
+
+        .source-item {
+            padding: 12px;
+            border-left: 4px solid var(--secondary);
+            margin-bottom: 12px;
+            background: white;
+        }
+
+        .source-item-category {
+            font-size: 12px;
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .source-item-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .source-item-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 푸터 */
+        .report-footer {
+            background: linear-gradient(135deg, var(--surface-dim) 0%, var(--surface-variant) 100%);
+            padding: 32px 64px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            margin-top: 64px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .footer-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 16px 0;
+        }
+
+        /* 응답형 */
+        @media (max-width: 768px) {
+            .report-header {
+                padding: 32px 16px;
+            }
+
+            .report-content {
+                padding: 32px 16px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .header-right {
+                text-align: left;
+            }
+
+            .country-name {
+                font-size: 32px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contribution-table {
+                font-size: 12px;
+            }
+
+            .contribution-table th,
+            .contribution-table td {
+                padding: 12px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab-button {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* 인쇄 */
+        @media print {
+            .tabs {
+                display: none;
+            }
+
+            .tab-content {
+                display: block !important;
+                page-break-inside: avoid;
+            }
+
+            .card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="report-header">
+        <div class="header-top">
+            <div class="header-left">
+                <div class="country-name">
+                    <span>{{ report.target }}</span>
+                    <span class="country-code">({{ report.target }})</span>
+                </div>
+                <div class="header-meta">
+                    {% set region_label = "지역: " %}
+                    {{ region_label }}{{ report.region }}
+                </div>
+                {% if report.baseline %}
+                <div class="baseline-info">
+                    비교 기준국: {{ report.baseline }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="header-right">
+                <div class="report-meta">
+                    <div><strong>보고서 ID</strong><br>{{ report.report_id }}</div>
+                    <div style="margin-top: 12px;"><strong>생성일시</strong><br>{{ report.created_at }}</div>
+                </div>
+                <a href="#" class="download-btn" onclick="window.print(); return false;">📄 PDF 다운로드</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div class="report-content">
+        <!-- 탭 네비게이션 -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab(this, 'summary')">📊 요약</button>
+            <button class="tab-button" onclick="switchTab(this, 'findings')">🔍 판정근거</button>
+            <button class="tab-button" onclick="switchTab(this, 'cost')">💰 비용 추정</button>
+            <button class="tab-button" onclick="switchTab(this, 'risk')">⚠️ 리스크</button>
+            <button class="tab-button" onclick="switchTab(this, 'weights')">⚙️ 가중치</button>
+            <button class="tab-button" onclick="switchTab(this, 'sources')">📚 출처</button>
+        </div>
+
+        <!-- 탭 1: 요약 -->
+        <div id="summary" class="tab-content active">
+            <div class="section">
+                <div class="section-title">진출 판정</div>
+                {% if report.views.business.ranking %}
+                    {% set biz = report.views.business.ranking[0] %}
+                    <div class="summary-grid">
+                        <div class="metric-box">
+                            <div class="metric-label">매력도(Attractiveness)</div>
+                            <div class="metric-value">{{ biz.score|format_num }}</div>
+                            <div class="metric-unit">/ 100</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">난이도(Difficulty)</div>
+                            <div class="metric-value">{{ biz.difficulty|format_num }}</div>
+                            <div class="metric-unit">/ 100</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">사분면 판정</div>
+                            <div class="metric-value">{{ biz.quadrant|quadrant_emoji }}</div>
+                            <div class="quadrant-badge">{{ biz.quadrant }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if report.views.it.ranking %}
+                    {% set it = report.views.it.ranking[0] %}
+                    <div class="card" style="margin-top: 32px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">IT 유사도</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">{{ it.similarity|format_num }}</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">대비 {{ (it.cost.discount * 100)|int }}% 절감</div>
+                            </div>
+                            <div style="text-align: center; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">구축 비용</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">{{ it.cost.build|format_num(0) }}</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">{{ it.cost.unit }}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">구축 기간</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">{{ it.cost.months|format_num(0) }}</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">개월</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <div class="section-title">게이트 체크 현황</div>
+                {% if report.gate_result and report.gate_result.get(report.target) %}
+                    {% set gates = report.gate_result[report.target] %}
+                    {% if gates.passed %}
+                    <div class="verdict-box">
+                        <div class="verdict-label">✓ 게이트 통과</div>
+                        <div class="verdict-text">모든 필수 체크 사항을 충족하였습니다. 진출 진행 가능합니다.</div>
+                    </div>
+                {% else %}
+                    <div class="verdict-box" style="border-left-color: var(--error); background: linear-gradient(135deg, rgba(186, 26, 26, 0.1) 0%, rgba(186, 26, 26, 0.05) 100%);">
+                        <div class="verdict-label" style="color: var(--error);">✗ 게이트 미통과</div>
+                        <div class="verdict-text" style="color: var(--error);">일부 필수 체크 사항을 충족하지 못했습니다. 상세 검토가 필요합니다.</div>
+                    </div>
+                {% endif %}
+
+                    <div class="gate-container">
+                        {% for check in gates.checks %}
+                            <div class="gate-item {% if check.result == 'PASS' %}pass{% elif check.result == 'FAIL' %}fail{% else %}flag{% endif %}">
+                                <div class="gate-icon">
+                                    {% if check.result == 'PASS' %}✓{% elif check.result == 'FAIL' %}✗{% else %}⚠{% endif %}
+                                </div>
+                                <div class="gate-content">
+                                    <div class="gate-item-name">{{ check.item }}</div>
+                                    <div class="gate-scope">범위: {{ check.scope }} | 신뢰도: {{ check.tier|tier_label }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 탭 2: 판정근거 -->
+        <div id="findings" class="tab-content">
+            <div class="section">
+                <div class="section-title">비즈니스 분석</div>
+                {% if report.views.business.ranking %}
+                    {% set biz = report.views.business.ranking[0] %}
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 18px;">기여도 분석</h4>
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>원본값</th>
+                                    <th>정규화</th>
+                                    <th>가중치</th>
+                                    <th>기여도</th>
+                                    <th>신뢰도</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrib in biz.contributions %}
+                                    <tr>
+                                        <td><strong>{{ contrib.item }}</strong></td>
+                                        <td>{{ contrib.raw|format_num }}</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: {{ contrib.normalized }}%;"></div>
+                                                <div class="bar-label">{{ contrib.normalized|format_num(0) }}</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ contrib.weight|format_num(3) }}</td>
+                                        <td><strong>{{ contrib.weighted|format_num }}</strong></td>
+                                        <td><span class="confidence-badge confidence-{{ contrib.tier|tier_color }}">{{ contrib.tier|tier_label }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <div class="section-title">IT 준비도 분석</div>
+                {% if report.views.it.ranking %}
+                    {% set it = report.views.it.ranking[0] %}
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 18px;">유사도 및 이식 분석</h4>
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>유사도</th>
+                                    <th>가중치</th>
+                                    <th>기여도</th>
+                                    <th>신뢰도</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrib in it.contributions %}
+                                    <tr>
+                                        <td><strong>{{ contrib.item }}</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: {{ contrib.match }}%;"></div>
+                                                <div class="bar-label">{{ contrib.match|format_num(0) }}</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ contrib.weight|format_num(3) }}</td>
+                                        <td><strong>{{ contrib.weighted|format_num }}</strong></td>
+                                        <td><span class="confidence-badge confidence-{{ contrib.tier|tier_color }}">{{ contrib.tier|tier_label }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top: 32px;">
+                            <h4 style="color: var(--primary); margin-bottom: 16px;">세부 인사이트</h4>
+                            {% for contrib in it.contributions %}
+                                <div class="insight-box">
+                                    <div class="insight-label">{{ contrib.item }}</div>
+                                    <div>{{ contrib.insight_compare }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 탭 3: 비용 추정 -->
+        <div id="cost" class="tab-content">
+            <div class="section">
+                <div class="section-title">비용 & 일정 추정</div>
+                {% if report.views.it.ranking %}
+                    {% set it = report.views.it.ranking[0] %}
+                    <div class="cost-breakdown">
+                        <div class="cost-item">
+                            <div class="cost-label">기준국 구축비</div>
+                            <div class="cost-value">{{ it.cost.baseline_build|format_num(0) }}</div>
+                            <div class="cost-unit">{{ it.cost.unit }}</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">적용 할인율</div>
+                            <div class="cost-value">{{ (it.cost.discount * 100)|int }}</div>
+                            <div class="cost-unit">%</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">조정 구축비</div>
+                            <div class="cost-value">{{ it.cost.build|format_num(0) }}</div>
+                            <div class="cost-unit">{{ it.cost.unit }}</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">연간 유지비</div>
+                            <div class="cost-value">{{ it.cost.maintenance_yr|format_num(0) }}</div>
+                            <div class="cost-unit">{{ it.cost.unit }}</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">구축 기간</div>
+                            <div class="cost-value">{{ it.cost.months|format_num(0) }}</div>
+                            <div class="cost-unit">개월</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">기준국</div>
+                            <div class="cost-value">{{ it.cost.baseline }}</div>
+                            <div class="cost-unit">비교대상</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">구축 일정</h4>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-label-name">전체 구축 기간</span>
+                                <span class="progress-label-value">{{ it.cost.months|format_num(0) }}개월</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 4px;">
+                            <strong>계산 기준:</strong> 기준국 {{ it.cost.baseline }}의 구축 기간({{ (it.cost.months / (1 - it.cost.discount * 0.7))|format_num(0) }}개월)을 {{ (it.cost.discount * 0.7 * 100)|int }}% 감축
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 탭 4: 리스크 -->
+        <div id="risk" class="tab-content">
+            <div class="section">
+                <div class="section-title">리스크 & 추천사항</div>
+
+                <div class="card">
+                    <h4 style="color: var(--primary); margin-bottom: 16px;">실사 대상 항목 (Tier 3 이상)</h4>
+                    {% if report.due_diligence %}
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>국가</th>
+                                    <th>항목</th>
+                                    <th>신뢰도</th>
+                                    <th>조치</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dd in report.due_diligence %}
+                                    <tr>
+                                        <td><strong>{{ dd.code }}</strong></td>
+                                        <td>{{ dd.item }}</td>
+                                        <td><span class="confidence-badge confidence-{{ dd.tier|tier_color }}">{{ dd.tier|tier_label }}</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">{{ dd.action }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div style="padding: 24px; text-align: center; color: var(--text-secondary);">
+                            특별한 실사 대상 항목이 없습니다.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h4 style="color: var(--primary); margin-bottom: 16px;">주요 고위험 요소</h4>
+                    <div class="insight-box">
+                        <div class="insight-label">⚠️ 주의</div>
+                        <div>Tier 3 이상의 항목은 출처 신뢰도가 낮거나 데이터 신선도가 떨어질 수 있습니다. 진출 결정 전 관련 전문가의 의견과 현지 실사를 권고합니다.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 5: 가중치 -->
+        <div id="weights" class="tab-content">
+            <div class="section">
+                <div class="section-title">비즈니스 가중치</div>
+                {% if report.views.business.weights %}
+                    <div class="card">
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>가중치</th>
+                                    <th>시각화</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item, weight in report.views.business.weights.items() %}
+                                    <tr>
+                                        <td><strong>{{ item }}</strong></td>
+                                        <td>{{ (weight * 100)|int }}%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: {{ weight * 100 }}%;"></div>
+                                                <div class="bar-label">{{ (weight * 100)|int }}%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <div class="section-title">IT 준비도 가중치</div>
+                {% if report.views.it.weights %}
+                    <div class="card">
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>가중치</th>
+                                    <th>시각화</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item, weight in report.views.it.weights.items() %}
+                                    <tr>
+                                        <td><strong>{{ item }}</strong></td>
+                                        <td>{{ (weight * 100)|int }}%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: {{ weight * 100 }}%;"></div>
+                                                <div class="bar-label">{{ (weight * 100)|int }}%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 탭 6: 출처 -->
+        <div id="sources" class="tab-content">
+            <div class="section">
+                <div class="section-title">데이터 출처 & 버전</div>
+                {% if report.based_on %}
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">국가 데이터</h4>
+                        <ul class="source-list">
+                            {% for code, version in report.based_on.country_versions.items() %}
+                                <li class="source-item">
+                                    <div class="source-item-category">국가 데이터</div>
+                                    <div class="source-item-name">{{ code }}</div>
+                                    <div class="source-item-date">버전: {{ version }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">기준국 데이터</h4>
+                        <ul class="source-list">
+                            {% for region, version in report.based_on.baseline_versions.items() %}
+                                <li class="source-item">
+                                    <div class="source-item-category">기준국</div>
+                                    <div class="source-item-name">{{ region }}</div>
+                                    <div class="source-item-date">버전: {{ version }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">스키마 정보</h4>
+                        <ul class="source-list">
+                            <li class="source-item">
+                                <div class="source-item-category">내부 규칙</div>
+                                <div class="source-item-name">{{ report.based_on.internal_version }}</div>
+                                <div class="source-item-date">스코어링 규칙 및 가중치</div>
+                            </li>
+                            <li class="source-item">
+                                <div class="source-item-category">스키마</div>
+                                <div class="source-item-name">{{ report.based_on.schema_version }}</div>
+                                <div class="source-item-date">보고서 구조 버전</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">활성 항목 그룹</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            {% for group in report.active_groups %}
+                                <span style="background: var(--surface-variant); padding: 6px 12px; border-radius: 4px; font-size: 13px; color: var(--text-primary); font-weight: 600;">{{ group }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="report-footer">
+        <div>현대캐피탈 Global Market Entry Analysis Report</div>
+        <div class="footer-divider"></div>
+        <div>이 보고서는 기밀 정보를 포함하고 있으며, 인가된 담당자만 접근할 수 있습니다.</div>
+        <div style="margin-top: 12px; font-size: 11px;">자동 생성 보고서 - {{ report.report_id }} | {{ report.created_at }}</div>
+    </div>
+
+    <script>
+        function switchTab(button, tabId) {
+            // 모든 탭 버튼과 컨텐츠 비활성화
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+            // 선택된 탭 활성화
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // 초기 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            // 첫 번째 탭 활성화
+            document.querySelector('.tab-button').click();
+        });
+    </script>
+</body>
+</html>

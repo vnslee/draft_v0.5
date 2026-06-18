@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>현대캐피탈 글로벌 시장 진출 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00204e;
+            --primary-container: #003478;
+            --secondary: #005db7;
+            --surface: #fbf9f9;
+            --surface-variant: #e3e2e2;
+            --border-color: #dcdcdc;
+            --text-primary: #1b1c1c;
+            --text-secondary: #555555;
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: white;
+            padding: 48px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* 컨텐츠 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+        }
+
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .button:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .button-secondary {
+            background: white;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+
+        .button-secondary:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        .report-list {
+            list-style: none;
+        }
+
+        .report-item {
+            background: white;
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .report-info h4 {
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .report-info p {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--surface-variant);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border-left: 4px solid #c62828;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .footer {
+            background: var(--surface-variant);
+            padding: 32px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            margin-top: 48px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 32px 16px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .container {
+                padding: 32px 16px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .report-actions {
+                width: 100%;
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <h1>🌍 현대캐피탈 글로벌 시장 진출 분석</h1>
+        <p>동적 보고서 렌더링 엔진을 통한 자동금융 시장 분석</p>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div class="container">
+        <!-- 개요 -->
+        <div class="section">
+            <div class="section-title">📊 시스템 개요</div>
+            <div class="grid">
+                <div class="card">
+                    <h3>📈 스코어링 엔진</h3>
+                    <p>Python 기반 동적 스코어링 엔진이 국가별 데이터를 분석하여 시장 진출 적합성을 평가합니다.</p>
+                    <a href="#scoring" class="button">자세히 보기</a>
+                </div>
+                <div class="card">
+                    <h3>🎨 HTML 렌더링</h3>
+                    <p>Jinja2 템플릿 엔진으로 JSON 보고서를 전문적인 HTML 보고서로 동적 변환합니다.</p>
+                    <a href="#rendering" class="button">자세히 보기</a>
+                </div>
+                <div class="card">
+                    <h3>🔌 REST API</h3>
+                    <p>FastAPI 백엔드가 데이터 및 보고서 조회, 렌더링 등의 기능을 제공합니다.</p>
+                    <a href="/docs" class="button">API 문서</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스코어링 엔진 -->
+        <div class="section" id="scoring">
+            <div class="section-title">🎯 스코어링 엔진</div>
+            <div class="card">
+                <h3>scoring_engine.py</h3>
+                <p><strong>기능:</strong> 국가별 데이터를 받아 활성 항목(active_items)만으로 동적 계산</p>
+                <ul style="margin-left: 20px; margin-top: 12px; line-height: 2;">
+                    <li>✓ 비즈니스 점수 (매력도 & 난이도)</li>
+                    <li>✓ IT 준비도 점수 (유사도 기반)</li>
+                    <li>✓ 비용 추정 (할인율 적용)</li>
+                    <li>✓ 게이트 체크 (규제 준수)</li>
+                    <li>✓ 실사 우선순위 (Tier 기반)</li>
+                </ul>
+                <pre style="background: #f5f5f5; padding: 12px; margin-top: 16px; border-radius: 4px; overflow-x: auto; font-size: 12px;">
+python3 scoring_engine.py PL "추가항목"</pre>
+            </div>
+        </div>
+
+        <!-- HTML 렌더링 -->
+        <div class="section" id="rendering">
+            <div class="section-title">🎨 동적 HTML 렌더링</div>
+            <div class="card">
+                <h3>report_renderer.py & report_template.html</h3>
+                <p><strong>기능:</strong> JSON 보고서를 Jinja2 템플릿으로 전문적인 HTML로 변환</p>
+                <ul style="margin-left: 20px; margin-top: 12px; line-height: 2;">
+                    <li>✓ 6개 탭 구조 (요약, 판정근거, 비용, 리스크, 가중치, 출처)</li>
+                    <li>✓ Kinetic Enterprise 디자인 시스템</li>
+                    <li>✓ 반응형 레이아웃 (모바일/태블릿/데스크톱)</li>
+                    <li>✓ PDF 인쇄 최적화</li>
+                    <li>✓ 실시간 데이터 바인딩</li>
+                </ul>
+                <pre style="background: #f5f5f5; padding: 12px; margin-top: 16px; border-radius: 4px; overflow-x: auto; font-size: 12px;">
+python3 report_renderer.py report/country/PL/PL_rpt_2026-06-18T1500.json</pre>
+            </div>
+        </div>
+
+        <!-- 생성된 보고서 -->
+        <div class="section">
+            <div class="section-title">📄 생성된 보고서</div>
+            <div id="report-list-container" class="loading">
+                <div class="spinner"></div>
+                <p>보고서 목록 로드 중...</p>
+            </div>
+            <ul id="report-list" class="report-list" style="display: none;"></ul>
+        </div>
+
+        <!-- API 엔드포인트 -->
+        <div class="section">
+            <div class="section-title">🔌 API 엔드포인트</div>
+            <div class="card">
+                <h4 style="margin-bottom: 16px; color: var(--primary);">데이터 API</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;"><code>GET /api/data/country/{CODE}</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">국가 데이터 조회</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;"><code>GET /api/data/internal</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">가중치 & 규칙 조회</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top: 16px;">
+                <h4 style="margin-bottom: 16px; color: var(--primary);">보고서 API</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;"><code>GET /api/report/country/{CODE}</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">보고서 HTML 조회</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;"><code>GET /api/report/country/{CODE}/json</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">보고서 JSON 조회</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;"><code>POST /api/render/report/{CODE}</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">보고서 렌더링 요청</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px;"><code>GET /api/report/available-countries</code></td>
+                        <td style="padding: 12px; color: var(--text-secondary);">사용 가능한 국가 목록</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 빠른 시작 -->
+        <div class="section">
+            <div class="section-title">🚀 빠른 시작</div>
+            <div class="card">
+                <h4 style="margin-bottom: 16px; color: var(--primary);">1. 스코어링 엔진 실행</h4>
+                <pre style="background: #f5f5f5; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin-bottom: 16px;">
+$ cd engine
+$ python3 scoring_engine.py PL</pre>
+
+                <h4 style="margin-bottom: 16px; color: var(--primary);">2. 보고서 렌더링</h4>
+                <pre style="background: #f5f5f5; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin-bottom: 16px;">
+$ python3 report_renderer.py report/country/PL/PL_rpt_2026-06-18T1500.json</pre>
+
+                <h4 style="margin-bottom: 16px; color: var(--primary);">3. 백엔드 서버 시작</h4>
+                <pre style="background: #f5f5f5; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; margin-bottom: 16px;">
+$ cd app/back
+$ pip install fastapi uvicorn
+$ python3 app.py</pre>
+
+                <h4 style="margin-bottom: 16px; color: var(--primary);">4. 보고서 확인</h4>
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                    HTML 보고서: <code>report/samples/PL_rpt_2026-06-18T1500.html</code><br>
+                    API 문서: <code>http://localhost:8000/docs</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        <p>현대캐피탈 글로벌 시장 진출 분석 시스템</p>
+        <p style="margin-top: 8px;">동적 보고서 렌더링 엔진 v1.0</p>
+    </div>
+
+    <script>
+        // 보고서 목록 로드
+        async function loadReports() {
+            try {
+                const response = await fetch('/api/report/available-countries');
+                const data = await response.json();
+
+                const container = document.getElementById('report-list-container');
+                const list = document.getElementById('report-list');
+
+                if (data.countries && Object.keys(data.countries).length > 0) {
+                    container.style.display = 'none';
+                    list.style.display = 'block';
+
+                    for (const [code, info] of Object.entries(data.countries)) {
+                        const item = document.createElement('li');
+                        item.className = 'report-item';
+                        item.innerHTML = `
+                            <div class="report-info">
+                                <h4>${code} 국가 진단 보고서</h4>
+                                <p>최신 버전: ${info.latest}</p>
+                            </div>
+                            <div class="report-actions">
+                                <a href="/api/report/country/${code}" target="_blank" class="button button-small">HTML 보기</a>
+                                <a href="/api/report/country/${code}/json" target="_blank" class="button button-small button-secondary">JSON 보기</a>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    }
+                } else {
+                    container.innerHTML = '<p>생성된 보고서가 없습니다.</p>';
+                }
+            } catch (error) {
+                document.getElementById('report-list-container').innerHTML = `<p class="error">보고서 목록 로드 실패: ${error.message}</p>`;
+            }
+        }
+
+        // 페이지 로드 시 보고서 목록 로드
+        document.addEventListener('DOMContentLoaded', loadReports);
+    </script>
+</body>
+</html>

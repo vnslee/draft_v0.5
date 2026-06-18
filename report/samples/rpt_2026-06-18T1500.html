@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 국가 진단 보고서 - rpt_2026-06-18T1500</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00204e;
+            --primary-container: #003478;
+            --secondary: #005db7;
+            --tertiary: #4d000a;
+            --surface: #fbf9f9;
+            --surface-variant: #e3e2e2;
+            --surface-dim: #dbdad9;
+            --outline: #747782;
+            --error: #ba1a1a;
+            --success: #2d6a4f;
+            --warning: #f77f00;
+            --info: #2f79d9;
+            --text-primary: #1b1c1c;
+            --text-secondary: #555555;
+            --text-disabled: #bebebe;
+            --border-color: #dcdcdc;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.16);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* 헤더 */
+        .report-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: white;
+            padding: 48px 64px;
+            border-bottom: 4px solid var(--secondary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .country-name {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .country-code {
+            font-size: 32px;
+            opacity: 0.8;
+        }
+
+        .header-meta {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .baseline-info {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .report-meta {
+            font-size: 13px;
+            opacity: 0.85;
+            line-height: 1.8;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        /* 내용 */
+        .report-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 64px 32px;
+        }
+
+        /* 탭 네비게이션 */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--surface-variant);
+            margin-bottom: 48px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            padding: 0 16px;
+        }
+
+        .tab-button {
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: var(--primary);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 섹션 */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        /* 카드 */
+        .card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 요약 섹션 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 12px 0;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .metric-unit {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .quadrant-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 12px;
+        }
+
+        .verdict-box {
+            background: linear-gradient(135deg, rgba(45, 106, 79, 0.1) 0%, rgba(47, 121, 217, 0.1) 100%);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+
+        .verdict-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .verdict-text {
+            font-size: 16px;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        /* 게이트 체크 */
+        .gate-container {
+            margin-bottom: 32px;
+        }
+
+        .gate-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border-left: 4px solid var(--border-color);
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .gate-item.pass {
+            border-left-color: var(--success);
+            background: rgba(45, 106, 79, 0.05);
+        }
+
+        .gate-item.fail {
+            border-left-color: var(--error);
+            background: rgba(186, 26, 26, 0.05);
+        }
+
+        .gate-item.flag {
+            border-left-color: var(--warning);
+            background: rgba(247, 127, 0, 0.05);
+        }
+
+        .gate-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .gate-content {
+            flex: 1;
+        }
+
+        .gate-item-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .gate-scope {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 컨트리뷰션 테이블 */
+        .contribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .contribution-table thead {
+            background: linear-gradient(135deg, var(--surface-variant) 0%, var(--surface-dim) 100%);
+        }
+
+        .contribution-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .contribution-table td {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .contribution-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 24px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--info) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .bar-label {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        /* 신뢰도 배지 */
+        .confidence-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .confidence-high {
+            background: rgba(45, 106, 79, 0.15);
+            color: var(--success);
+        }
+
+        .confidence-medium {
+            background: rgba(47, 121, 217, 0.15);
+            color: var(--info);
+        }
+
+        .confidence-low {
+            background: rgba(247, 127, 0, 0.15);
+            color: var(--warning);
+        }
+
+        /* 비용 추정 */
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .cost-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .cost-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .cost-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .cost-unit {
+            font-size: 11px;
+            color: var(--text-disabled);
+        }
+
+        /* 진도 바 */
+        .progress-item {
+            margin-bottom: 24px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-label-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-label-value {
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--surface-dim);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--info) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 인사이트 */
+        .insight-box {
+            background: linear-gradient(135deg, rgba(0, 52, 120, 0.05) 0%, rgba(47, 121, 217, 0.05) 100%);
+            border-left: 4px solid var(--secondary);
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .insight-label {
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 출처 */
+        .source-list {
+            list-style: none;
+        }
+
+        .source-item {
+            padding: 12px;
+            border-left: 4px solid var(--secondary);
+            margin-bottom: 12px;
+            background: white;
+        }
+
+        .source-item-category {
+            font-size: 12px;
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .source-item-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .source-item-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 푸터 */
+        .report-footer {
+            background: linear-gradient(135deg, var(--surface-dim) 0%, var(--surface-variant) 100%);
+            padding: 32px 64px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            margin-top: 64px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .footer-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 16px 0;
+        }
+
+        /* 응답형 */
+        @media (max-width: 768px) {
+            .report-header {
+                padding: 32px 16px;
+            }
+
+            .report-content {
+                padding: 32px 16px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .header-right {
+                text-align: left;
+            }
+
+            .country-name {
+                font-size: 32px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contribution-table {
+                font-size: 12px;
+            }
+
+            .contribution-table th,
+            .contribution-table td {
+                padding: 12px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab-button {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* 인쇄 */
+        @media print {
+            .tabs {
+                display: none;
+            }
+
+            .tab-content {
+                display: block !important;
+                page-break-inside: avoid;
+            }
+
+            .card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="report-header">
+        <div class="header-top">
+            <div class="header-left">
+                <div class="country-name">
+                    <span></span>
+                    <span class="country-code">()</span>
+                </div>
+                <div class="header-meta">
+                    
+                    지역: 
+                </div>
+                
+            </div>
+            <div class="header-right">
+                <div class="report-meta">
+                    <div><strong>보고서 ID</strong><br>rpt_2026-06-18T1500</div>
+                    <div style="margin-top: 12px;"><strong>생성일시</strong><br>2026-06-18T15:00:00+09:00</div>
+                </div>
+                <a href="#" class="download-btn" onclick="window.print(); return false;">📄 PDF 다운로드</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div class="report-content">
+        <!-- 탭 네비게이션 -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab(this, 'summary')">📊 요약</button>
+            <button class="tab-button" onclick="switchTab(this, 'findings')">🔍 판정근거</button>
+            <button class="tab-button" onclick="switchTab(this, 'cost')">💰 비용 추정</button>
+            <button class="tab-button" onclick="switchTab(this, 'risk')">⚠️ 리스크</button>
+            <button class="tab-button" onclick="switchTab(this, 'weights')">⚙️ 가중치</button>
+            <button class="tab-button" onclick="switchTab(this, 'sources')">📚 출처</button>
+        </div>
+
+        <!-- 탭 1: 요약 -->
+        <div id="summary" class="tab-content active">
+            <div class="section">
+                <div class="section-title">진출 판정</div>
+                
+                    
+                    <div class="summary-grid">
+                        <div class="metric-box">
+                            <div class="metric-label">매력도(Attractiveness)</div>
+                            <div class="metric-value">65.6</div>
+                            <div class="metric-unit">/ 100</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">난이도(Difficulty)</div>
+                            <div class="metric-value">28.8</div>
+                            <div class="metric-unit">/ 100</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">사분면 판정</div>
+                            <div class="metric-value">🚀</div>
+                            <div class="quadrant-badge">즉시 진출</div>
+                        </div>
+                    </div>
+                
+
+                
+                    
+                    <div class="card" style="margin-top: 32px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">IT 유사도</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">81.7</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">대비 40% 절감</div>
+                            </div>
+                            <div style="text-align: center; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">구축 비용</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">3,000</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">GBP_M(데모)</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">구축 기간</div>
+                                <div style="font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1;">13</div>
+                                <div style="font-size: 12px; color: var(--text-disabled); margin-top: 4px;">개월</div>
+                            </div>
+                        </div>
+                    </div>
+                
+            </div>
+
+            <div class="section">
+                <div class="section-title">게이트 체크 현황</div>
+                
+            </div>
+        </div>
+
+        <!-- 탭 2: 판정근거 -->
+        <div id="findings" class="tab-content">
+            <div class="section">
+                <div class="section-title">비즈니스 분석</div>
+                
+                    
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 18px;">기여도 분석</h4>
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>원본값</th>
+                                    <th>정규화</th>
+                                    <th>가중치</th>
+                                    <th>기여도</th>
+                                    <th>신뢰도</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    <tr>
+                                        <td><strong>오토금융/리스 시장규모</strong></td>
+                                        <td>88,100.0</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 88.1%;"></div>
+                                                <div class="bar-label">88</div>
+                                            </div>
+                                        </td>
+                                        <td>0.300</td>
+                                        <td><strong>26.4</strong></td>
+                                        <td><span class="confidence-badge confidence-info">중간</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>오토금융 성장률(CAGR)</strong></td>
+                                        <td>10.9</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 90.8%;"></div>
+                                                <div class="bar-label">90</div>
+                                            </div>
+                                        </td>
+                                        <td>0.200</td>
+                                        <td><strong>18.2</strong></td>
+                                        <td><span class="confidence-badge confidence-info">중간</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>금융 이용률(신차)</strong></td>
+                                        <td>65.0</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 65.0%;"></div>
+                                                <div class="bar-label">65</div>
+                                            </div>
+                                        </td>
+                                        <td>0.200</td>
+                                        <td><strong>13.0</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>평균 금리/APR</strong></td>
+                                        <td>8.0</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 53.3%;"></div>
+                                                <div class="bar-label">53</div>
+                                            </div>
+                                        </td>
+                                        <td>0.150</td>
+                                        <td><strong>8.0</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>캡티브 강도(점유율)</strong></td>
+                                        <td>30.0</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 30.0%;"></div>
+                                                <div class="bar-label">30</div>
+                                            </div>
+                                        </td>
+                                        <td>0.500</td>
+                                        <td><strong>15.0</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>1위사 점유율</strong></td>
+                                        <td>13.8</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 27.6%;"></div>
+                                                <div class="bar-label">27</div>
+                                            </div>
+                                        </td>
+                                        <td>0.500</td>
+                                        <td><strong>13.8</strong></td>
+                                        <td><span class="confidence-badge confidence-info">중간</span></td>
+                                    </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                
+            </div>
+
+            <div class="section">
+                <div class="section-title">IT 준비도 분석</div>
+                
+                    
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 18px;">유사도 및 이식 분석</h4>
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>유사도</th>
+                                    <th>가중치</th>
+                                    <th>기여도</th>
+                                    <th>신뢰도</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    <tr>
+                                        <td><strong>신용정보(CB) 인프라</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 75.0%;"></div>
+                                                <div class="bar-label">75</div>
+                                            </div>
+                                        </td>
+                                        <td>0.200</td>
+                                        <td><strong>15.0</strong></td>
+                                        <td><span class="confidence-badge confidence-success">높음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>디지털 채널 성숙도</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 75.0%;"></div>
+                                                <div class="bar-label">75</div>
+                                            </div>
+                                        </td>
+                                        <td>0.150</td>
+                                        <td><strong>11.2</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>차량회수 절차 용이성</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 50.0%;"></div>
+                                                <div class="bar-label">50</div>
+                                            </div>
+                                        </td>
+                                        <td>0.100</td>
+                                        <td><strong>5.0</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>솔루션 벤더</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 100.0%;"></div>
+                                                <div class="bar-label">100</div>
+                                            </div>
+                                        </td>
+                                        <td>0.400</td>
+                                        <td><strong>40.0</strong></td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>라이선스 체제(세그먼트별)</strong></td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 70.0%;"></div>
+                                                <div class="bar-label">70</div>
+                                            </div>
+                                        </td>
+                                        <td>0.150</td>
+                                        <td><strong>10.5</strong></td>
+                                        <td><span class="confidence-badge confidence-success">높음</span></td>
+                                    </tr>
+                                
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top: 32px;">
+                            <h4 style="color: var(--primary); margin-bottom: 16px;">세부 인사이트</h4>
+                            
+                                <div class="insight-box">
+                                    <div class="insight-label">신용정보(CB) 인프라</div>
+                                    <div></div>
+                                </div>
+                            
+                                <div class="insight-box">
+                                    <div class="insight-label">디지털 채널 성숙도</div>
+                                    <div></div>
+                                </div>
+                            
+                                <div class="insight-box">
+                                    <div class="insight-label">차량회수 절차 용이성</div>
+                                    <div></div>
+                                </div>
+                            
+                                <div class="insight-box">
+                                    <div class="insight-label">솔루션 벤더</div>
+                                    <div></div>
+                                </div>
+                            
+                                <div class="insight-box">
+                                    <div class="insight-label">라이선스 체제(세그먼트별)</div>
+                                    <div></div>
+                                </div>
+                            
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+
+        <!-- 탭 3: 비용 추정 -->
+        <div id="cost" class="tab-content">
+            <div class="section">
+                <div class="section-title">비용 & 일정 추정</div>
+                
+                    
+                    <div class="cost-breakdown">
+                        <div class="cost-item">
+                            <div class="cost-label">기준국 구축비</div>
+                            <div class="cost-value">5,000</div>
+                            <div class="cost-unit">GBP_M(데모)</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">적용 할인율</div>
+                            <div class="cost-value">40</div>
+                            <div class="cost-unit">%</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">조정 구축비</div>
+                            <div class="cost-value">3,000</div>
+                            <div class="cost-unit">GBP_M(데모)</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">연간 유지비</div>
+                            <div class="cost-value">540</div>
+                            <div class="cost-unit">GBP_M(데모)</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">구축 기간</div>
+                            <div class="cost-value">13</div>
+                            <div class="cost-unit">개월</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">기준국</div>
+                            <div class="cost-value">UK</div>
+                            <div class="cost-unit">비교대상</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">구축 일정</h4>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-label-name">전체 구축 기간</span>
+                                <span class="progress-label-value">13개월</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 4px;">
+                            <strong>계산 기준:</strong> 기준국 UK의 구축 기간(18개월)을 27% 감축
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+
+        <!-- 탭 4: 리스크 -->
+        <div id="risk" class="tab-content">
+            <div class="section">
+                <div class="section-title">리스크 & 추천사항</div>
+
+                <div class="card">
+                    <h4 style="color: var(--primary); margin-bottom: 16px;">실사 대상 항목 (Tier 3 이상)</h4>
+                    
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>국가</th>
+                                    <th>항목</th>
+                                    <th>신뢰도</th>
+                                    <th>조치</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>금융 이용률(신차)</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>평균 금리/APR</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>캡티브 강도(점유율)</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>솔루션 벤더</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>솔루션 유형</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>디지털 채널 성숙도</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>PL</strong></td>
+                                        <td>차량회수 절차 용이성</td>
+                                        <td><span class="confidence-badge confidence-warning">낮음</span></td>
+                                        <td><span style="color: var(--warning); font-weight: 600;">1차 출처(공식통계·실사) 확인 필요</span></td>
+                                    </tr>
+                                
+                            </tbody>
+                        </table>
+                    
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h4 style="color: var(--primary); margin-bottom: 16px;">주요 고위험 요소</h4>
+                    <div class="insight-box">
+                        <div class="insight-label">⚠️ 주의</div>
+                        <div>Tier 3 이상의 항목은 출처 신뢰도가 낮거나 데이터 신선도가 떨어질 수 있습니다. 진출 결정 전 관련 전문가의 의견과 현지 실사를 권고합니다.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 5: 가중치 -->
+        <div id="weights" class="tab-content">
+            <div class="section">
+                <div class="section-title">비즈니스 가중치</div>
+                
+                    <div class="card">
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>가중치</th>
+                                    <th>시각화</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    <tr>
+                                        <td><strong>오토금융/리스 시장규모</strong></td>
+                                        <td>30%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 30.0%;"></div>
+                                                <div class="bar-label">30%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>오토금융 성장률(CAGR)</strong></td>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 20.0%;"></div>
+                                                <div class="bar-label">20%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>금융 이용률(신차)</strong></td>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 20.0%;"></div>
+                                                <div class="bar-label">20%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>평균 금리/APR</strong></td>
+                                        <td>15%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 15.0%;"></div>
+                                                <div class="bar-label">15%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>캡티브 강도(점유율)</strong></td>
+                                        <td>7%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 7.5%;"></div>
+                                                <div class="bar-label">7%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>1위사 점유율</strong></td>
+                                        <td>7%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 7.5%;"></div>
+                                                <div class="bar-label">7%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                
+            </div>
+
+            <div class="section">
+                <div class="section-title">IT 준비도 가중치</div>
+                
+                    <div class="card">
+                        <table class="contribution-table">
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>가중치</th>
+                                    <th>시각화</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                    <tr>
+                                        <td><strong>솔루션 벤더</strong></td>
+                                        <td>40%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 40.0%;"></div>
+                                                <div class="bar-label">40%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>신용정보(CB) 인프라</strong></td>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 20.0%;"></div>
+                                                <div class="bar-label">20%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>디지털 채널 성숙도</strong></td>
+                                        <td>15%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 15.0%;"></div>
+                                                <div class="bar-label">15%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>라이선스 체제(세그먼트별)</strong></td>
+                                        <td>15%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 15.0%;"></div>
+                                                <div class="bar-label">15%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                                    <tr>
+                                        <td><strong>차량회수 절차 용이성</strong></td>
+                                        <td>10%</td>
+                                        <td>
+                                            <div class="bar-container">
+                                                <div class="bar-fill" style="width: 10.0%;"></div>
+                                                <div class="bar-label">10%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                
+            </div>
+        </div>
+
+        <!-- 탭 6: 출처 -->
+        <div id="sources" class="tab-content">
+            <div class="section">
+                <div class="section-title">데이터 출처 & 버전</div>
+                
+                    <div class="card">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">국가 데이터</h4>
+                        <ul class="source-list">
+                            
+                                <li class="source-item">
+                                    <div class="source-item-category">국가 데이터</div>
+                                    <div class="source-item-name">PL</div>
+                                    <div class="source-item-date">버전: PL_2026-06-18T1432</div>
+                                </li>
+                            
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">기준국 데이터</h4>
+                        <ul class="source-list">
+                            
+                                <li class="source-item">
+                                    <div class="source-item-category">기준국</div>
+                                    <div class="source-item-name">EU</div>
+                                    <div class="source-item-date">버전: UK_2026-06-18T1432</div>
+                                </li>
+                            
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">스키마 정보</h4>
+                        <ul class="source-list">
+                            <li class="source-item">
+                                <div class="source-item-category">내부 규칙</div>
+                                <div class="source-item-name">internal_v1.2_2026-06-01</div>
+                                <div class="source-item-date">스코어링 규칙 및 가중치</div>
+                            </li>
+                            <li class="source-item">
+                                <div class="source-item-category">스키마</div>
+                                <div class="source-item-name">1.0</div>
+                                <div class="source-item-date">보고서 구조 버전</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <h4 style="color: var(--primary); margin-bottom: 16px;">활성 항목 그룹</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="report-footer">
+        <div>현대캐피탈 Global Market Entry Analysis Report</div>
+        <div class="footer-divider"></div>
+        <div>이 보고서는 기밀 정보를 포함하고 있으며, 인가된 담당자만 접근할 수 있습니다.</div>
+        <div style="margin-top: 12px; font-size: 11px;">자동 생성 보고서 - rpt_2026-06-18T1500 | 2026-06-18T15:00:00+09:00</div>
+    </div>
+
+    <script>
+        function switchTab(button, tabId) {
+            // 모든 탭 버튼과 컨텐츠 비활성화
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+            // 선택된 탭 활성화
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // 초기 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            // 첫 번째 탭 활성화
+            document.querySelector('.tab-button').click();
+        });
+    </script>
+</body>
+</html>
