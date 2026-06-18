@@ -60,7 +60,7 @@
       "insight_ai_generated": true
     },
     {
-      "item": "금융 침투율(신차)",
+      "item": "금융 이용률(신차)",
       "category": "business",
       "role": "score",
       "tier_group": "mvp",
@@ -457,7 +457,7 @@
       "insight_ai_generated": true
     },
     {
-      "item": "금융 침투율(중고차)",
+      "item": "금융 이용률(중고차)",
       "category": "business",
       "role": "score",
       "tier_group": "ext2_biz",
