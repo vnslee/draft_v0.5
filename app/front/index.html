@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>진출 진단 보고서 — 동적 렌더링 엔진</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: {
+        primary: "#00204e", secondary: "#005db7", "accent-red": "#E63946",
+        surface: "#fbf9f9", "surface-container-lowest": "#ffffff",
+        "surface-container": "#efeded", "surface-container-high": "#e9e8e7",
+        "surface-border": "#DCDCDC", "text-primary": "#000000",
+        "text-secondary": "#555555", "on-surface-variant": "#434751",
+        "primary-container": "#003478", "secondary-container": "#599bfe"
+      },
+      borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+      spacing: { xs: "4px", sm: "8px", md: "16px", lg: "24px", xl: "32px", gutter: "24px", "margin-desktop": "48px" },
+      fontFamily: { sans: ["Hanken Grotesk", "sans-serif"] }
+    } }
+  };
+</script>
+<style>
+  body { font-family: 'Hanken Grotesk', sans-serif; }
+  .card-shadow { box-shadow: 0 4px 8px rgba(0, 32, 78, 0.12); }
+  .ms { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; }
+  /* accordion */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .acc-chevron { transform: rotate(180deg); }
+  .acc-chevron { transition: transform .2s ease; }
+  details .acc-body { animation: accIn .2s ease; }
+  @keyframes accIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .bar-fill { transition: width .5s cubic-bezier(.22,.61,.36,1); }
+  .tab-active { color: #00204e; border-color: #00204e; }
+  @media print { .no-print { display: none !important; } body { background: #fff; } }
+</style>
+</head>
+<body class="bg-surface min-h-screen text-text-primary antialiased">
+
+<!-- ============ Toolbar ============ -->
+<div class="no-print bg-surface-container-lowest border-b border-surface-border">
+  <div class="max-w-7xl mx-auto px-margin-desktop py-sm flex items-center justify-between gap-md">
+    <div class="flex items-center gap-sm text-text-secondary text-sm">
+      <span class="ms text-secondary text-[20px]">insights</span>
+      <span class="font-semibold text-primary">진출 진단 보고서</span>
+      <span class="text-text-secondary/60">· 동적 렌더링 엔진</span>
+    </div>
+    <div class="flex items-center gap-sm">
+      <label class="flex items-center gap-xs px-3 py-1.5 rounded-lg border border-surface-border hover:bg-surface cursor-pointer text-sm">
+        <span class="ms text-[18px]">upload_file</span><span>리포트 JSON 불러오기</span>
+        <input id="fileInput" type="file" accept="application/json,.json" class="hidden"/>
+      </label>
+      <button id="printBtn" class="flex items-center gap-xs px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-container text-sm">
+        <span class="ms text-[18px]">picture_as_pdf</span><span>PDF / 인쇄</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Header (rendered) ============ -->
+<header id="reportHeader" class="border-b border-surface-border bg-surface-container-lowest px-margin-desktop py-lg"></header>
+
+<!-- ============ Tabs ============ -->
+<div class="no-print sticky top-0 z-10 bg-surface/90 backdrop-blur border-b border-surface-border px-margin-desktop">
+  <nav id="tabNav" class="max-w-7xl mx-auto flex gap-lg"></nav>
+</div>
+
+<!-- ============ Panels ============ -->
+<main class="px-margin-desktop py-xl">
+  <div class="max-w-7xl mx-auto">
+    <section id="panel-integrated" data-panel></section>
+    <section id="panel-business" data-panel hidden></section>
+    <section id="panel-it" data-panel hidden></section>
+  </div>
+</main>
+
+<footer class="no-print px-margin-desktop py-lg text-center text-xs text-text-secondary/70">
+  Hyundai Capital · 진출 추천 엔진 데모 — report JSON 기반 동적 생성
+</footer>
+
+<script src="sample_report.js"></script>
+<script>
+/* =====================================================================
+ * 동적 보고서 렌더링 엔진
+ * report JSON(views.integrated / business / it + gate_result + due_diligence)을
+ * 입력으로 받아 항목 유형별 시각화 + 아코디언 상세를 생성한다.
+ * ===================================================================== */
+
+/* ---------- 작은 DOM/포맷 헬퍼 ---------- */
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const num = (v) => (typeof v === "number" ? (Math.abs(v) >= 1000 ? v.toLocaleString() : v) : v);
+const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, Number(v) || 0));
+const isNum = (v) => typeof v === "number" && isFinite(v);
+
+/* ---------- 유형별 표현 메타 ---------- */
+// 축(매력도/난이도/유사도) → 라벨·색
+const AXIS = {
+  attractiveness: { label: "매력도", grad: "from-emerald-400 to-emerald-600", text: "text-emerald-700", chip: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "trending_up" },
+  difficulty: { label: "진입난이도", grad: "from-amber-400 to-accent-red", text: "text-accent-red", chip: "bg-red-50 text-accent-red border-red-200", icon: "trending_down" },
+  similarity: { label: "유사도", grad: "from-sky-400 to-secondary", text: "text-secondary", chip: "bg-sky-50 text-secondary border-sky-200", icon: "compare_arrows" }
+};
+// Tier → 신뢰도 라벨·색
+const TIER = {
+  1: { label: "Tier1 공식", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  2: { label: "Tier2 준공식", cls: "bg-sky-50 text-secondary border-sky-200" },
+  3: { label: "Tier3 참고", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  4: { label: "Tier4 추정", cls: "bg-red-50 text-accent-red border-red-200" }
+};
+function tierChip(tier) {
+  const t = TIER[tier];
+  if (!t) return "";
+  return `<span class="inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] font-semibold ${t.cls}">${t.label}</span>`;
+}
+
+/* ---------- 시각화 프리미티브 ---------- */
+// 0~100 점수 막대
+function scoreBar(value, axisKey = "attractiveness") {
+  const a = AXIS[axisKey] || AXIS.attractiveness;
+  const w = clamp(value);
+  return `<div class="w-full h-2.5 rounded-full bg-surface-container-high overflow-hidden">
+            <div class="bar-fill h-full rounded-full bg-gradient-to-r ${a.grad}" style="width:${w}%"></div>
+          </div>`;
+}
+// 가중치 칩
+function weightChip(weight, weighted) {
+  if (!isNum(weight)) return "";
+  const pct = Math.round(weight * 1000) / 10;
+  const wd = isNum(weighted) ? ` · 기여 ${weighted}` : "";
+  return `<span class="text-[11px] text-text-secondary">가중치 ${pct}%${wd}</span>`;
+}
+
+/* ---------- 아코디언 (패널을 누르면 상세 인사이트가 펼쳐진다) ---------- */
+function accordion(headHTML, bodyHTML, open = false) {
+  return `<details class="group bg-surface-container-lowest border border-surface-border rounded-lg overflow-hidden hover:border-secondary/40 transition-colors"${open ? " open" : ""}>
+    <summary class="flex items-center gap-md p-md select-none">
+      <div class="flex-1 min-w-0">${headHTML}</div>
+      <span class="ms acc-chevron text-text-secondary text-[22px] shrink-0">expand_more</span>
+    </summary>
+    <div class="acc-body px-md pb-md pt-0 border-t border-surface-border/60">${bodyHTML}</div>
+  </details>`;
+}
+// 인사이트 본문(상세 + 비교 + 플래그) 블록
+function insightBody(c) {
+  let out = "";
+  if (c.insight_detail)
+    out += `<div class="mt-md flex gap-sm">
+        <span class="ms text-secondary text-[18px] mt-0.5">lightbulb</span>
+        <p class="text-sm text-on-surface-variant leading-relaxed">${esc(c.insight_detail)}</p></div>`;
+  if (c.insight_compare)
+    out += `<div class="mt-sm bg-surface-container p-sm rounded-lg border-l-4 border-primary">
+        <p class="text-[13px] text-on-surface-variant leading-relaxed">${esc(c.insight_compare)}</p></div>`;
+  if (c.flag)
+    out += `<div class="mt-sm inline-flex items-center gap-xs text-[12px] text-accent-red"><span class="ms text-[16px]">flag</span>${esc(c.flag)}</div>`;
+  if (c.note)
+    out += `<div class="mt-sm text-[12px] text-text-secondary">※ ${esc(c.note)}</div>`;
+  return out || `<p class="mt-md text-sm text-text-secondary">추가 상세 없음</p>`;
+}
+
+/* =====================================================================
+ * 카드/섹션 빌더
+ * ===================================================================== */
+function sectionCard(title, icon, innerHTML) {
+  return `<section class="bg-surface-container-lowest border border-surface-border rounded-xl p-lg card-shadow mb-xl">
+    <div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-border">
+      <span class="ms text-primary text-[22px]" style="font-variation-settings:'FILL' 1">${icon}</span>
+      <h2 class="text-xl font-semibold text-primary">${title}</h2>
+    </div>${innerHTML}</section>`;
+}
+
+/* ---------- 비즈니스 기여 항목 (점수형) ---------- */
+function bizItem(c) {
+  const a = AXIS[c.axis] || AXIS.attractiveness;
+  const head = `
+    <div class="flex items-center justify-between gap-sm mb-xs">
+      <div class="flex items-center gap-sm min-w-0">
+        <span class="inline-flex items-center gap-xs px-2 py-0.5 rounded-full border text-[11px] font-semibold ${a.chip}">
+          <span class="ms text-[14px]">${a.icon}</span>${a.label}</span>
+        <span class="font-semibold text-text-primary truncate">${esc(c.item)}</span>
+      </div>
+      <div class="flex items-center gap-sm shrink-0">
+        ${tierChip(c.tier)}
+        <span class="text-lg font-bold ${a.text}">${isNum(c.normalized) ? c.normalized : "-"}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-sm">
+      <div class="flex-1">${scoreBar(c.normalized, c.axis)}</div>
+      <span class="text-[11px] text-text-secondary shrink-0 w-28 text-right">원값 ${num(c.raw)}</span>
+    </div>
+    <div class="mt-xs">${weightChip(c.weight, c.weighted)}</div>`;
+  return accordion(head, insightBody(c));
+}
+
+/* ---------- IT 기여 항목 (정합도형 + 후보/베이스라인 비교) ---------- */
+function itItem(c, baselineCode) {
+  const head = `
+    <div class="flex items-center justify-between gap-sm mb-xs">
+      <span class="font-semibold text-text-primary truncate">${esc(c.item)}</span>
+      <div class="flex items-center gap-sm shrink-0">
+        ${tierChip(c.tier)}
+        <span class="text-lg font-bold text-secondary">${isNum(c.match) ? c.match + "%" : "-"}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-sm">
+      <div class="flex-1">${scoreBar(c.match, "similarity")}</div>
+      <span class="text-[11px] text-text-secondary shrink-0 w-24 text-right">가중치 ${isNum(c.weight) ? Math.round(c.weight * 1000) / 10 : 0}%</span>
+    </div>
+    ${compareRow(c, baselineCode)}`;
+  return accordion(head, insightBody(c));
+}
+// 후보국 vs 베이스라인 비교 (숫자면 미니바, 텍스트면 라벨)
+function compareRow(c, baselineCode) {
+  if (c.cand == null && c.baseline == null) return "";
+  const candNum = isNum(c.cand), baseNum = isNum(c.baseline);
+  if (candNum && baseNum) {
+    const mx = Math.max(c.cand, c.baseline, 1);
+    const bar = (v, color) => `<div class="flex-1 h-2 rounded-full bg-surface-container-high overflow-hidden"><div class="h-full ${color}" style="width:${(v / mx) * 100}%"></div></div>`;
+    return `<div class="mt-sm grid grid-cols-[auto_1fr_auto] items-center gap-x-sm gap-y-xs text-[12px]">
+        <span class="text-text-secondary">대상</span>${bar(c.cand, "bg-secondary")}<span class="font-semibold text-secondary">${c.cand}</span>
+        <span class="text-text-secondary">${esc(baselineCode || "기준")}</span>${bar(c.baseline, "bg-text-secondary/50")}<span class="font-semibold text-text-secondary">${c.baseline}</span>
+      </div>`;
+  }
+  return `<div class="mt-sm flex flex-wrap gap-x-md gap-y-xs text-[12px]">
+      <span class="text-text-secondary">대상: <span class="text-secondary font-medium">${esc(c.cand ?? "-")}</span></span>
+      <span class="text-text-secondary">${esc(baselineCode || "기준")}: <span class="font-medium">${esc(c.baseline ?? "-")}</span></span>
+    </div>`;
+}
+
+/* ---------- 게이트 결과 (PASS/FAIL 배지형) ---------- */
+function gateBlock(report) {
+  const gr = report.gate_result || {};
+  const rows = [];
+  Object.entries(gr).forEach(([code, info]) => {
+    (info.checks || []).forEach((ck) => {
+      const pass = ck.result === "PASS";
+      rows.push(`<div class="flex items-center justify-between p-sm bg-surface rounded-lg border border-surface-container-high">
+        <div class="flex items-center gap-sm min-w-0">
+          <span class="ms text-[18px] ${pass ? "text-emerald-700" : "text-accent-red"}">${pass ? "check_circle" : "cancel"}</span>
+          <span class="text-sm font-medium truncate">${esc(ck.item)}</span>
+          <span class="text-[11px] text-text-secondary">${esc(ck.scope || "")}</span>
+        </div>
+        <div class="flex items-center gap-sm shrink-0">
+          ${tierChip(ck.tier)}
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${pass ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-accent-red"}">${esc(ck.result)}</span>
+        </div>
+      </div>`);
+    });
+  });
+  if (!rows.length) return "";
+  const failed = (report.gate_failed || []).length;
+  const banner = failed
+    ? `<div class="mb-md inline-flex items-center gap-xs text-accent-red text-sm font-semibold"><span class="ms text-[18px]">block</span>게이트 ${failed}건 탈락</div>`
+    : `<div class="mb-md inline-flex items-center gap-xs text-emerald-700 text-sm font-semibold"><span class="ms text-[18px]">verified</span>모든 게이트 통과</div>`;
+  return sectionCard("진입 게이트 (필수요건)", "gpp_good", banner + `<div class="flex flex-col gap-sm">${rows.join("")}</div>`);
+}
+
+/* ---------- 실사 항목 (리스트형, 아코디언) ---------- */
+function dueDiligenceBlock(report) {
+  const dd = report.due_diligence || [];
+  if (!dd.length) return "";
+  const rows = dd.map((d) => accordion(
+    `<div class="flex items-center justify-between gap-sm">
+       <div class="flex items-center gap-sm min-w-0"><span class="ms text-amber-600 text-[18px]">fact_check</span>
+       <span class="text-sm font-medium truncate">${esc(d.item)}</span></div>
+       ${tierChip(d.tier)}</div>`,
+    `<p class="mt-md text-sm text-on-surface-variant"><span class="font-semibold text-primary">조치: </span>${esc(d.action)}</p>`
+  )).join("");
+  return sectionCard(`실사 필요 항목 (${dd.length})`, "checklist", `<div class="flex flex-col gap-sm">${rows}</div>`);
+}
+
+/* =====================================================================
+ * 탭별 렌더러
+ * ===================================================================== */
+
+/* ----- 종합 탭: 2축 매트릭스 + 판정 + 게이트 + 실사 ----- */
+function renderIntegrated(report) {
+  const v = (report.views && report.views.integrated) || {};
+  const ranking = v.ranking || [];
+  let html = "";
+
+  // 1) 2축 매트릭스 (x: 매력도, y: 진입난이도 / 버블 크기: 비용)
+  html += sectionCard("매력도 × 진입난이도 매트릭스", "scatter_plot",
+    `<div class="grid md:grid-cols-[1.1fr_0.9fr] gap-lg items-center">
+       <div>${matrixSVG(ranking)}</div>
+       <div class="flex flex-col gap-sm">${quadrantLegend()}</div>
+     </div>`);
+
+  // 2) 국가별 종합 판정 카드
+  const cards = ranking.map((r) => {
+    const stat = (label, val, color) => `<div class="flex flex-col p-sm bg-surface rounded-lg border border-surface-container-high">
+        <span class="text-[11px] text-text-secondary uppercase">${label}</span>
+        <span class="text-xl font-bold ${color}">${isNum(val) ? num(val) : "-"}</span></div>`;
+    return `<div class="border border-surface-border rounded-xl p-md mb-md last:mb-0">
+        <div class="flex items-center gap-sm mb-md">
+          <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">${r.rank ?? "-"}</span>
+          <span class="text-lg font-bold text-primary">${esc(r.code)}</span>
+          <span class="px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary text-[11px] font-semibold border border-secondary/20">${esc(r.quadrant || "")}</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-sm mb-md">
+          ${stat("매력도", r.attractiveness, "text-emerald-700")}
+          ${stat("난이도", r.difficulty, "text-accent-red")}
+          ${stat("유사도", r.similarity, "text-secondary")}
+          ${stat("구축비", r.bubble_cost, "text-primary")}
+        </div>
+        ${r.verdict ? `<div class="bg-surface-container p-md rounded-lg border-l-4 border-primary">
+          <div class="flex items-center gap-xs mb-xs"><span class="ms text-primary text-[18px]">gavel</span>
+          <span class="text-[12px] font-bold text-primary uppercase">종합 판정</span></div>
+          <p class="text-sm text-on-surface-variant leading-relaxed">${esc(r.verdict)}</p></div>` : ""}
+      </div>`;
+  }).join("");
+  html += sectionCard("종합 판정", "summarize", cards + (v.note ? `<p class="text-[12px] text-text-secondary mt-sm">${esc(v.note)}</p>` : ""));
+
+  // 3) 게이트 + 4) 실사
+  html += gateBlock(report);
+  html += dueDiligenceBlock(report);
+  return html;
+}
+
+// 2축 매트릭스 SVG (사분면)
+function matrixSVG(ranking) {
+  const W = 360, H = 360, P = 36;
+  const sx = (v) => P + (clamp(v) / 100) * (W - 2 * P);
+  const sy = (v) => H - P - (clamp(v) / 100) * (H - 2 * P); // 위로 갈수록 난이도↑
+  const costs = ranking.map((r) => r.bubble_cost).filter(isNum);
+  const maxCost = Math.max(...costs, 1);
+  const bubbles = ranking.map((r) => {
+    const rad = 10 + (isNum(r.bubble_cost) ? (r.bubble_cost / maxCost) * 18 : 6);
+    const x = sx(r.attractiveness), y = sy(r.difficulty);
+    return `<g>
+      <circle cx="${x}" cy="${y}" r="${rad}" fill="rgba(0,93,183,0.18)" stroke="#005db7" stroke-width="2"/>
+      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#00204e">${esc(r.code)}</text>
+    </g>`;
+  }).join("");
+  const ql = (x, y, t, anchor) => `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="10" fill="#9aa0ab">${t}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="w-full max-w-[420px] mx-auto">
+    <rect x="${P}" y="${P}" width="${W - 2 * P}" height="${H - 2 * P}" fill="#ffffff" stroke="#DCDCDC"/>
+    <line x1="${W / 2}" y1="${P}" x2="${W / 2}" y2="${H - P}" stroke="#ECECEC" stroke-dasharray="4 4"/>
+    <line x1="${P}" y1="${H / 2}" x2="${W - P}" y2="${H / 2}" stroke="#ECECEC" stroke-dasharray="4 4"/>
+    ${ql(P + 4, P + 14, "고난이도·저매력", "start")}
+    ${ql(W - P - 4, P + 14, "고난이도·고매력", "end")}
+    ${ql(P + 4, H - P - 6, "저난이도·저매력", "start")}
+    ${ql(W - P - 4, H - P - 6, "저난이도·고매력(스윗스팟)", "end")}
+    <text x="${W / 2}" y="${H - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#555">매력도 →</text>
+    <text x="12" y="${H / 2}" text-anchor="middle" font-size="11" font-weight="600" fill="#555" transform="rotate(-90 12 ${H / 2})">진입난이도 →</text>
+    ${bubbles}
+  </svg>`;
+}
+function quadrantLegend() {
+  const items = [
+    ["스윗스팟 (고매력·저난이도)", "단독 진출 우선 검토", "text-emerald-700", "bolt"],
+    ["선별 진출 (고매력·고난이도)", "JV/제휴 등 진입전략 필요", "text-amber-700", "handshake"],
+    ["관망 (저매력·저난이도)", "후순위 모니터링", "text-secondary", "visibility"],
+    ["회피 (저매력·고난이도)", "현 시점 진출 비권장", "text-accent-red", "block"]
+  ];
+  return items.map(([t, d, c, ic]) => `<div class="flex items-start gap-sm p-sm bg-surface rounded-lg border border-surface-container-high">
+      <span class="ms ${c} text-[20px]">${ic}</span>
+      <div><div class="text-sm font-semibold ${c}">${t}</div><div class="text-[12px] text-text-secondary">${d}</div></div>
+    </div>`).join("") +
+    `<div class="text-[11px] text-text-secondary mt-xs">※ 버블 크기 = 시스템 구축비 추정</div>`;
+}
+
+/* ----- 비즈니스 탭: 매력도/난이도 기여 항목 ----- */
+function renderBusiness(report) {
+  const v = (report.views && report.views.business) || {};
+  const ranking = v.ranking || [];
+  if (!ranking.length) return emptyState("비즈니스 뷰 데이터가 없습니다.");
+  return ranking.map((r) => {
+    const cs = r.contributions || [];
+    const group = (ax) => {
+      const list = cs.filter((c) => c.axis === ax);
+      if (!list.length) return "";
+      const a = AXIS[ax];
+      return `<div class="mb-lg last:mb-0">
+        <div class="flex items-center gap-xs mb-sm"><span class="ms ${a.text} text-[18px]">${a.icon}</span>
+        <span class="text-sm font-bold ${a.text} uppercase tracking-wide">${a.label}</span></div>
+        <div class="flex flex-col gap-sm">${list.map(bizItem).join("")}</div></div>`;
+    };
+    const scoreHdr = `<div class="flex flex-wrap items-center gap-md mb-lg">
+        <div class="flex items-center gap-sm"><span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">${r.rank ?? "-"}</span>
+        <span class="text-lg font-bold text-primary">${esc(r.code)}</span></div>
+        <div class="flex flex-wrap gap-md text-sm items-center">
+          <span>매력도 <b class="text-emerald-700">${isNum(r.score) ? r.score : "-"}</b></span>
+          <span>난이도 <b class="text-accent-red">${isNum(r.difficulty) ? r.difficulty : "-"}</b></span>
+          ${r.quadrant ? `<span class="px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary text-[11px] font-semibold border border-secondary/20">${esc(r.quadrant)}</span>` : ""}
+          ${r.confidence ? `<span class="text-text-secondary">신뢰도 ${esc(r.confidence)}</span>` : ""}
+        </div></div>`;
+    return sectionCard(`비즈니스 진단 — ${esc(r.code)}`, "monitoring", scoreHdr + group("attractiveness") + group("difficulty"));
+  }).join("");
+}
+
+/* ----- IT 탭: 비용 추정 + 정합도 기여 항목 ----- */
+function renderIT(report) {
+  const v = (report.views && report.views.it) || {};
+  const ranking = v.ranking || [];
+  if (!ranking.length) return emptyState("IT 뷰 데이터가 없습니다.");
+  const baselineCode = v.baseline || report.baseline;
+  return ranking.map((r) => {
+    const cost = r.cost || {};
+    const cstat = (label, val, suffix = "") => `<div class="flex flex-col p-sm bg-surface rounded-lg border border-surface-container-high">
+        <span class="text-[11px] text-text-secondary uppercase">${label}</span>
+        <span class="text-lg font-bold text-primary">${isNum(val) ? num(val) : esc(val ?? "-")}${suffix}</span></div>`;
+    const costCard = `<div class="grid grid-cols-2 sm:grid-cols-4 gap-sm mb-md">
+        ${cstat("구축비", cost.build, " " + esc(cost.unit || ""))}
+        ${cstat("기간(개월)", cost.months)}
+        ${cstat("절감율", isNum(cost.discount) ? Math.round(cost.discount * 100) : null, "%")}
+        ${cstat("연 유지비", cost.maintenance_yr, " " + esc(cost.unit || ""))}
+      </div>
+      ${baselineCode ? `<p class="text-[12px] text-text-secondary mb-md">기준국 <b>${esc(baselineCode)}</b> 대비 — 베이스라인 구축비 ${num(cost.baseline_build)} 에 정합도 기반 절감 적용</p>` : ""}`;
+
+    const itemsHTML = (r.contributions || []).map((c) => itItem(c, baselineCode)).join("");
+    const simHdr = `<div class="flex flex-wrap items-center gap-md mb-lg">
+        <div class="flex items-center gap-sm"><span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">${r.rank ?? "-"}</span>
+        <span class="text-lg font-bold text-primary">${esc(r.code)}</span></div>
+        <span class="text-sm">시스템 유사도 <b class="text-secondary">${isNum(r.similarity) ? r.similarity : "-"}</b></span>
+        ${r.confidence ? `<span class="text-sm text-text-secondary">신뢰도 ${esc(r.confidence)}</span>` : ""}
+      </div>`;
+    return sectionCard(`IT 시스템 진단 — ${esc(r.code)}`, "dns", simHdr + costCard +
+      `<div class="flex items-center gap-xs mb-sm"><span class="ms text-secondary text-[18px]">compare_arrows</span>
+       <span class="text-sm font-bold text-secondary uppercase tracking-wide">정합도 기여 (${esc(baselineCode || "기준")} 대비)</span></div>
+       <div class="flex flex-col gap-sm">${itemsHTML}</div>`);
+  }).join("");
+}
+
+function emptyState(msg) {
+  return `<div class="text-center py-xl text-text-secondary"><span class="ms text-[40px] block mb-sm">inbox</span>${esc(msg)}</div>`;
+}
+
+/* =====================================================================
+ * 헤더 / 탭 / 부트스트랩
+ * ===================================================================== */
+const TABS = [
+  { id: "integrated", label: "종합", icon: "dashboard" },
+  { id: "business", label: "비즈니스", icon: "monitoring" },
+  { id: "it", label: "IT", icon: "dns" }
+];
+
+function renderHeader(report) {
+  const created = report.created_at ? report.created_at.slice(0, 16).replace("T", " ") : "-";
+  document.getElementById("reportHeader").innerHTML = `
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-start gap-gutter">
+      <div class="flex gap-md items-center">
+        <div class="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xl shrink-0">${esc(report.target || "?")}</div>
+        <div>
+          <div class="flex items-center gap-sm mb-xs">
+            <h1 class="text-3xl font-bold text-primary tracking-tight">${esc(report.target || "")} 진출 진단</h1>
+            <span class="bg-secondary-container/20 text-secondary px-2 py-1 rounded text-[11px] font-semibold uppercase tracking-wider">${esc(report.region || "")}</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-md text-text-secondary text-sm">
+            <span class="flex items-center gap-xs"><span class="ms text-[16px]">balance</span>비교국 <b class="text-text-primary">${esc(report.baseline || "-")}</b></span>
+            <span class="w-px h-4 bg-surface-border"></span>
+            <span class="flex items-center gap-xs"><span class="ms text-[16px]">tag</span><b class="text-text-primary">${esc(report.report_id || "-")}</b></span>
+            <span class="w-px h-4 bg-surface-border"></span>
+            <span class="flex items-center gap-xs"><span class="ms text-[16px]">calendar_today</span>${esc(created)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderTabs() {
+  const nav = document.getElementById("tabNav");
+  nav.innerHTML = TABS.map((t, i) => `
+    <button data-tab="${t.id}" class="tab-btn flex items-center gap-xs py-md border-b-2 ${i === 0 ? "tab-active" : "border-transparent text-text-secondary"} font-semibold text-sm hover:text-primary transition-colors">
+      <span class="ms text-[18px]">${t.icon}</span>${t.label}
+    </button>`).join("");
+  nav.querySelectorAll(".tab-btn").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+}
+function switchTab(id) {
+  TABS.forEach((t) => {
+    const panel = document.getElementById("panel-" + t.id);
+    if (panel) panel.hidden = t.id !== id;
+  });
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    const on = b.dataset.tab === id;
+    b.classList.toggle("tab-active", on);
+    b.classList.toggle("border-transparent", !on);
+    b.classList.toggle("text-text-secondary", !on);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* 엔진 진입점: report 객체 하나로 전체 화면을 생성 */
+function renderReport(report) {
+  try {
+    document.title = `${report.target || ""} 진출 진단 보고서`;
+    renderHeader(report);
+    renderTabs();
+    document.getElementById("panel-integrated").innerHTML = renderIntegrated(report);
+    document.getElementById("panel-business").innerHTML = renderBusiness(report);
+    document.getElementById("panel-it").innerHTML = renderIT(report);
+    switchTab("integrated");
+  } catch (e) {
+    document.getElementById("panel-integrated").innerHTML = emptyState("렌더링 오류: " + e.message);
+    console.error(e);
+  }
+}
+
+/* 데이터 로딩: ?report=경로 → 후보 경로 fetch → 내장 샘플(SAMPLE_REPORT) */
+async function bootstrap() {
+  const params = new URLSearchParams(location.search);
+  const candidates = [];
+  if (params.get("report")) candidates.push(params.get("report"));
+  candidates.push("../../report/country/PL/PL_rpt_2026-06-19T0630.json");
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) { renderReport(await res.json()); return; }
+    } catch (_) { /* file:// 등에서는 실패 → 다음 후보 */ }
+  }
+  if (window.SAMPLE_REPORT) renderReport(window.SAMPLE_REPORT);
+  else document.getElementById("panel-integrated").innerHTML = emptyState("리포트를 불러오지 못했습니다. 우측 상단에서 JSON을 불러오세요.");
+}
+
+/* 파일 업로더 / 인쇄 */
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { try { renderReport(JSON.parse(r.result)); } catch (err) { alert("JSON 파싱 실패: " + err.message); } };
+  r.readAsText(f);
+});
+document.getElementById("printBtn").addEventListener("click", () => {
+  document.querySelectorAll("[data-panel]").forEach((p) => (p.hidden = false)); // 인쇄 시 전체 펼침
+  window.print();
+});
+
+bootstrap();
+</script>
+</body>
+</html>

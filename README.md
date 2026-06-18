@@ -89,3 +89,18 @@ draft_v0.5/
 | GET | `/api/data/schema/country` | 국가별 스키마 조회 |
 | GET | `/api/report/country/PL` | 폴란드 리포트 조회 |
 | GET | `/api/report/region` | 지역별 리포트 조회 |
+
+## 동적 보고서 렌더링 엔진 (app/front/index.html)
+
+report JSON 한 건을 **원데이터**로 받아 진단 보고서 화면을 동적으로 생성한다.
+
+- **탭 구성**: `종합` / `비즈니스` / `IT` — `report.views.{integrated, business, it}`에 1:1 매핑
+- **항목 유형별 시각화**
+  - 비즈니스 기여 항목 → 매력도/난이도 축별 색상 + 정규화 점수 막대 + 가중치/Tier 칩
+  - IT 기여 항목 → 정합도(%) 막대 + 후보국 vs 베이스라인 비교 막대 + 비용 추정 카드
+  - 종합 → 매력도×난이도 2축 매트릭스(버블=구축비) + 사분면 범례 + 판정 카드
+  - 게이트 → PASS/FAIL 배지, 실사 항목 → 리스트
+- **아코디언**: 각 항목 패널을 누르면 `insight_detail` / `insight_compare` 상세가 펼쳐짐
+- **데이터 로딩 우선순위**: `?report=<경로>` → `report/country/PL/...`(서버 구동 시 fetch) → 내장 샘플(`sample_report.js`)
+  - 우측 상단 **리포트 JSON 불러오기**로 임의 report JSON 업로드, **PDF/인쇄** 버튼 제공
+- **실행**: `app/front/`에서 정적 서버 구동(예: `python3 -m http.server`) 후 `index.html` 접속. 서버 없이 파일을 직접 열어도 내장 샘플로 렌더링됨.
