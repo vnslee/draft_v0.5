@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>탭 테스트</title>
+    <style>
+        .tabs { display: flex; gap: 0; }
+        .tab { padding: 10px 20px; cursor: pointer; border: none; background: #f0f0f0; }
+        .tab.active { background: #0066cc; color: white; }
+        .tab-content { display: none; padding: 20px; border: 1px solid #ddd; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab active" onclick="showTab(this, 'tab1')">탭 1</button>
+        <button class="tab" onclick="showTab(this, 'tab2')">탭 2</button>
+        <button class="tab" onclick="showTab(this, 'tab3')">탭 3</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <h2>탭 1 콘텐츠</h2>
+        <p>첫 번째 탭입니다.</p>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <h2>탭 2 콘텐츠</h2>
+        <p>두 번째 탭입니다.</p>
+    </div>
+
+    <div id="tab3" class="tab-content">
+        <h2>탭 3 콘텐츠</h2>
+        <p>세 번째 탭입니다.</p>
+    </div>
+
+    <script>
+        function showTab(btn, tabName) {
+            console.log('showTab called with', tabName);
+
+            // 모든 탭 숨기기
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+
+            // 모든 탭 버튼 비활성화
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+
+            // 선택된 탭 표시
+            document.getElementById(tabName).classList.add('active');
+            btn.classList.add('active');
+
+            console.log('Tab switched to', tabName);
+        }
+    </script>
+</body>
+</html>
