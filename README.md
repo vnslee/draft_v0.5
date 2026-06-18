@@ -6,50 +6,35 @@
 draft_v0.5/
 ├── app/
 │   ├── back/                       # 백엔드 애플리케이션
+│   │   └── app.py                  # FastAPI 서버
 │   └── front/                      # 프론트엔드 애플리케이션
+│       └── index.html              # 메인 페이지
 ├── data/
-│   ├── countries/                  # 국가별 데이터
-│   │   ├── AU/                     # 호주
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── BR/                     # 브라질
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── CA/                     # 캐나다
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── CN/                     # 중국
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── DE/                     # 독일
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── ID/                     # 인도네시아
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── IN/                     # 인도
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── IT/                     # 이탈리아
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── KR/                     # 한국
-│   │   │   ├── external/
-│   │   │   └── internal/
-│   │   ├── UK/                     # 영국
-│   │   │   ├── external/
-│   │   │   │   ├── biz/           # 비즈니스 데이터
-│   │   │   │   └── it/            # IT 데이터
-│   │   │   └── internal/
-│   │   │       ├── biz/           # 비즈니스 데이터
-│   │   │       └── it/            # IT 데이터
-│   │   └── US/                     # 미국
-│   │       ├── external/
-│   │       └── internal/
-│   └── rulesets/                   # 규칙셋
+│   ├── country/                    # 국가별 데이터
+│   │   ├── PL/                     # 폴란드
+│   │   │   ├── PL_2026-06-18T1432.json
+│   │   │   └── PL_latest.json
+│   │   └── UK/                     # 영국
+│   │       └── UK_latest.json
+│   ├── internal/                   # 내부 공통 데이터
+│   │   └── internal_latest.json
+│   ├── sample/                     # 샘플 데이터
+│   │   └── sample.md
+│   ├── schema/                     # 데이터 스키마 정의
+│   │   ├── country_prompt.md       # 국가별 프롬프트
+│   │   └── country_schema.md       # 국가별 스키마
+│   └── README.md
+├── engine/                         # 스코어링 엔진
+│   └── scoring_engine.py           # 점수 계산 로직
 ├── report/
 │   ├── country/                    # 국가별 리포트
+│   │   ├── PL/                     # 폴란드 리포트
+│   │   │   └── PL_rpt_2026-06-18T1500.json
+│   │   └── README.md
 │   └── region/                     # 지역별 리포트
+│       └── README.md
+├── spec/
+│   └── web_design.md               # 웹 디자인 명세서
 └── README.md
 ```
 
@@ -65,17 +50,17 @@ draft_v0.5/
 
 | 파일 경로 | API 경로 |
 |-----------|----------|
-| `data/countries/AU/external/202606191012.json` | `/api/data/countries/AU/external` |
-| `data/countries/AU/internal/202606191012.json` | `/api/data/countries/AU/internal` |
-| `data/countries/UK/external/biz/202606191012.json` | `/api/data/countries/UK/external/biz` |
-| `data/countries/UK/internal/it/202606191012.json` | `/api/data/countries/UK/internal/it` |
-| `data/rulesets/202606191012.json` | `/api/data/rulesets` |
+| `data/country/PL/PL_latest.json` | `/api/data/country/PL` |
+| `data/country/PL/PL_2026-06-18T1432.json` | `/api/data/country/PL?version=2026-06-18T1432` |
+| `data/country/UK/UK_latest.json` | `/api/data/country/UK` |
+| `data/internal/internal_latest.json` | `/api/data/internal` |
+| `data/schema/country_schema.md` | `/api/data/schema/country` |
 
 ### report 하위 예시
 
 | 파일 경로 | API 경로 |
 |-----------|----------|
-| `report/country/202606191012.json` | `/api/report/country` |
+| `report/country/PL/PL_rpt_2026-06-18T1500.json` | `/api/report/country/PL` |
 | `report/region/202606191012.json` | `/api/report/region` |
 
 ### 생성일시 형식
@@ -97,10 +82,10 @@ draft_v0.5/
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | `/api/data/countries/AU/external` | 호주 외부 데이터 조회 |
-| GET | `/api/data/countries/AU/internal` | 호주 내부 데이터 조회 |
-| GET | `/api/data/countries/UK/external/biz` | 영국 외부 비즈니스 데이터 조회 |
-| GET | `/api/data/countries/UK/internal/it` | 영국 내부 IT 데이터 조회 |
-| GET | `/api/data/rulesets` | 규칙셋 조회 |
-| GET | `/api/report/country` | 국가별 리포트 조회 |
+| GET | `/api/data/country/PL` | 폴란드 최신 데이터 조회 |
+| GET | `/api/data/country/PL?version=2026-06-18T1432` | 폴란드 특정 버전 조회 |
+| GET | `/api/data/country/UK` | 영국 데이터 조회 |
+| GET | `/api/data/internal` | 내부 공통 데이터 조회 |
+| GET | `/api/data/schema/country` | 국가별 스키마 조회 |
+| GET | `/api/report/country/PL` | 폴란드 리포트 조회 |
 | GET | `/api/report/region` | 지역별 리포트 조회 |
