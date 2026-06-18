@@ -46,7 +46,7 @@
       "insight_ai_generated": true
     },
     {
-      "item": "금융 침투율(신차)",
+      "item": "금융 이용률(신차)",
       "category": "business", "role": "score", "tier_group": "mvp",
       "value": 85, "unit": "%", "direction": "up", "axis": "attractiveness",
       "timeseries": null,
