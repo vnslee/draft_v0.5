@@ -146,3 +146,6 @@ internalVersions = [
 | DE | 독일 | EU |
 | ID | 인도네시아 | APAC |
 | BR | 브라질 | AMERICAS |
+
+## 6. 기타
+> sample 폴더는 말그대로 샘플 데이터 이므로 참고만 하고, 실제 데이터로 사용하지 않음
