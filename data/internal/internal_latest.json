@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-06-01T00:00:00+09:00",
+
+  "country_assets": {               // 진출국별 자사 구축 실적. 진출하면 한 줄 추가.
+    "UK":    { "solution": "NetSol",     "build_cost": 5000, "build_months": 18, "reuse_factor": 0.70 },
+    "USA":   { "solution": "Salesforce", "build_cost": 6000, "build_months": 20, "reuse_factor": 0.50 },
+    "Austrailia": { "solution": "Self-built", "build_cost": 4500, "build_months": 16, "reuse_factor": 1.00 }
+    // 폴란드 진출 시 → "Poland": {...} 추가 = 후보→베이스라인 승격
+  },
+
+  "similarity_brackets": [
+    { "min": 80, "max": 100, "discount": 0.40 },
+    { "min": 70, "max": 79,  "discount": 0.30 },
+    { "min": 60, "max": 69,  "discount": 0.20 },
+    { "min": 50, "max": 59,  "discount": 0.10 },
+    { "min": 0,  "max": 49,  "discount": 0.00 }
+  ],
+
+  "maintenance_rate": 0.18,         // 운영비 = 구축비 × 이 비율
+
+  "weights": {
+    "business": { "시장규모": 0.30, "성장률": 0.20, "침투율": 0.20, "APR": 0.15, "캡티브강도": 0.15 },
+    "it":       { "솔루션벤더": 0.40, "CB인프라": 0.20, "디지털채널": 0.15, "라이선스체제": 0.15, "차량회수": 0.10 }
+  }
+}
