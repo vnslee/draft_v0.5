@@ -181,34 +181,34 @@ def render_html(report):
             }});
 
             // 아코디언 기능 - 기여도 항목
-            const headers = document.querySelectorAll('.contrib-header');
-            headers.forEach(header => {{
-                header.addEventListener('click', function() {{
+            document.querySelectorAll('.contrib-header').forEach(function(header) {{
+                header.addEventListener('click', function(e) {{
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const body = this.nextElementSibling;
                     const toggle = this.querySelector('.contrib-toggle');
-                    const isActive = this.classList.contains('active');
 
-                    // 다른 항목 닫기 (같은 섹션 내에서)
-                    const parent = this.closest('.card');
-                    if (parent) {{
-                        parent.querySelectorAll('.contrib-header').forEach(h => {{
-                            if (h !== this) {{
+                    // 같은 카드 내의 다른 항목들 닫기
+                    const card = this.closest('.card');
+                    if (card) {{
+                        card.querySelectorAll('.contrib-header').forEach(function(h) {{
+                            if (h !== header) {{
                                 h.classList.remove('active');
-                                h.nextElementSibling?.classList.remove('active');
-                                h.querySelector('.contrib-toggle').textContent = '▶';
+                                if (h.nextElementSibling && h.nextElementSibling.classList.contains('contrib-body')) {{
+                                    h.nextElementSibling.classList.remove('active');
+                                }}
+                                const t = h.querySelector('.contrib-toggle');
+                                if (t) t.textContent = '▶';
                             }}
                         }});
                     }}
 
                     // 현재 항목 토글
-                    if (isActive) {{
-                        this.classList.remove('active');
-                        body?.classList.remove('active');
-                        toggle.textContent = '▶';
-                    }} else {{
-                        this.classList.add('active');
-                        body?.classList.add('active');
-                        toggle.textContent = '▼';
+                    this.classList.toggle('active');
+                    if (body && body.classList.contains('contrib-body')) {{
+                        body.classList.toggle('active');
+                        toggle.textContent = this.classList.contains('active') ? '▼' : '▶';
                     }}
                 }});
             }});
