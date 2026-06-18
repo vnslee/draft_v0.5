@@ -102,9 +102,9 @@
 
         <!-- 탭 -->
         <div class="tabs">
-            <button class="tab active" onclick="showTab(this, 'overview')">📊 전체</button>
-            <button class="tab" onclick="showTab(this, 'business')">💼 비즈니스</button>
-            <button class="tab" onclick="showTab(this, 'it')">💻 IT</button>
+            <button class="tab active" data-tab="overview">📊 전체</button>
+            <button class="tab" data-tab="business">💼 비즈니스</button>
+            <button class="tab" data-tab="it">💻 IT</button>
         </div>
 
         <!-- 전체 탭 -->
@@ -502,19 +502,28 @@
     </div>
 
     <script>
-        function showTab(btn, tabName) {
-            // 모든 탭 숨기기
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(c => c.classList.remove('active'));
-
-            // 모든 탭 버튼 비활성화
+        document.addEventListener('DOMContentLoaded', function() {
             const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(t => t.classList.remove('active'));
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
 
-            // 선택된 탭 표시
-            document.getElementById(tabName).classList.add('active');
-            btn.classList.add('active');
-        }
+                    // 모든 탭 콘텐츠 숨기기
+                    document.querySelectorAll('.tab-content').forEach(c => {
+                        c.classList.remove('active');
+                    });
+
+                    // 모든 탭 버튼 비활성화
+                    document.querySelectorAll('.tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+
+                    // 선택된 탭 표시
+                    document.getElementById(tabName).classList.add('active');
+                    this.classList.add('active');
+                });
+            });
+        });
     </script>
 </body>
 </html>
