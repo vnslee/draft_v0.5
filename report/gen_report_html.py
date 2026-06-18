@@ -127,9 +127,9 @@ def render_html(report):
 
         <!-- 탭 -->
         <div class="tabs">
-            <button class="tab active" onclick="showTab('overview')">📊 전체</button>
-            <button class="tab" onclick="showTab('business')">💼 비즈니스</button>
-            <button class="tab" onclick="showTab('it')">💻 IT</button>
+            <button class="tab active" onclick="showTab(this, 'overview')">📊 전체</button>
+            <button class="tab" onclick="showTab(this, 'business')">💼 비즈니스</button>
+            <button class="tab" onclick="showTab(this, 'it')">💻 IT</button>
         </div>
 
         <!-- 전체 탭 -->
@@ -149,7 +149,7 @@ def render_html(report):
     </div>
 
     <script>
-        function showTab(tabName) {{
+        function showTab(btn, tabName) {{
             // 모든 탭 숨기기
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(c => c.classList.remove('active'));
@@ -160,7 +160,7 @@ def render_html(report):
 
             // 선택된 탭 표시
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            btn.classList.add('active');
         }}
     </script>
 </body>
