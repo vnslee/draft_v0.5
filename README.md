@@ -12,17 +12,24 @@ draft_v0.5/
 ├── data/
 │   ├── country/                    # 국가별 데이터
 │   │   ├── PL/                     # 폴란드
+│   │   │   ├── PL_2026-06-18T1432.json
 │   │   │   └── PL_latest.json
 │   │   └── UK/                     # 영국
-│   │       └── external/
+│   │       └── UK_latest.json
 │   ├── internal/                   # 내부 공통 데이터
 │   │   └── internal_latest.json
+│   ├── sample/                     # 샘플 데이터
+│   │   └── sample.md
 │   ├── schema/                     # 데이터 스키마 정의
 │   │   ├── country_prompt.md       # 국가별 프롬프트
 │   │   └── country_schema.md       # 국가별 스키마
 │   └── README.md
+├── engine/                         # 스코어링 엔진
+│   └── scoring_engine.py           # 점수 계산 로직
 ├── report/
 │   ├── country/                    # 국가별 리포트
+│   │   ├── PL/                     # 폴란드 리포트
+│   │   │   └── PL_rpt_2026-06-18T1500.json
 │   │   └── README.md
 │   └── region/                     # 지역별 리포트
 │       └── README.md
@@ -44,7 +51,8 @@ draft_v0.5/
 | 파일 경로 | API 경로 |
 |-----------|----------|
 | `data/country/PL/PL_latest.json` | `/api/data/country/PL` |
-| `data/country/UK/external/202606191012.json` | `/api/data/country/UK/external` |
+| `data/country/PL/PL_2026-06-18T1432.json` | `/api/data/country/PL?version=2026-06-18T1432` |
+| `data/country/UK/UK_latest.json` | `/api/data/country/UK` |
 | `data/internal/internal_latest.json` | `/api/data/internal` |
 | `data/schema/country_schema.md` | `/api/data/schema/country` |
 
@@ -52,7 +60,7 @@ draft_v0.5/
 
 | 파일 경로 | API 경로 |
 |-----------|----------|
-| `report/country/202606191012.json` | `/api/report/country` |
+| `report/country/PL/PL_rpt_2026-06-18T1500.json` | `/api/report/country/PL` |
 | `report/region/202606191012.json` | `/api/report/region` |
 
 ### 생성일시 형식
@@ -74,9 +82,10 @@ draft_v0.5/
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | `/api/data/country/PL` | 폴란드 데이터 조회 |
-| GET | `/api/data/country/UK/external` | 영국 외부 데이터 조회 |
+| GET | `/api/data/country/PL` | 폴란드 최신 데이터 조회 |
+| GET | `/api/data/country/PL?version=2026-06-18T1432` | 폴란드 특정 버전 조회 |
+| GET | `/api/data/country/UK` | 영국 데이터 조회 |
 | GET | `/api/data/internal` | 내부 공통 데이터 조회 |
 | GET | `/api/data/schema/country` | 국가별 스키마 조회 |
-| GET | `/api/report/country` | 국가별 리포트 조회 |
+| GET | `/api/report/country/PL` | 폴란드 리포트 조회 |
 | GET | `/api/report/region` | 지역별 리포트 조회 |
