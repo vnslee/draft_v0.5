@@ -70,13 +70,21 @@ def render_html(report):
         .gate-status.fail {{ color: #ef4444; }}
 
         /* 기여도 */
-        .contrib-item {{ display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #e5e7eb; }}
+        .contrib-item {{ border-bottom: 1px solid #e5e7eb; }}
         .contrib-item:last-child {{ border-bottom: none; }}
-        .contrib-name {{ flex: 1; }}
-        .contrib-detail {{ font-size: 12px; color: #666; margin-top: 4px; }}
+        .contrib-header {{ display: flex; justify-content: space-between; align-items: center; padding: 12px; cursor: pointer; user-select: none; transition: background 0.2s; }}
+        .contrib-header:hover {{ background: #f9fafb; }}
+        .contrib-header.active {{ background: #f0f7ff; }}
+        .contrib-header-left {{ display: flex; align-items: center; gap: 10px; flex: 1; }}
+        .contrib-toggle {{ font-size: 12px; color: #999; min-width: 20px; text-align: center; }}
+        .contrib-name {{ flex: 1; font-weight: 500; }}
         .contrib-bar {{ width: 150px; height: 20px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 0 20px; }}
         .contrib-fill {{ height: 100%; background: #0066cc; transition: width 0.3s; }}
         .contrib-value {{ font-weight: 600; min-width: 60px; text-align: right; }}
+        .contrib-body {{ display: none; padding: 12px 12px 12px 32px; background: #f9fafb; border-left: 3px solid #0066cc; }}
+        .contrib-body.active {{ display: block; }}
+        .contrib-detail {{ font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.5; }}
+        .contrib-compare {{ font-size: 12px; color: #0066cc; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; }}
 
         /* DD */
         .dd-item {{ display: flex; gap: 15px; padding: 12px; background: #fff8e1; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #f59e0b; }}
@@ -150,6 +158,7 @@ def render_html(report):
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {{
+            // 탭 기능
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => {{
                 tab.addEventListener('click', function() {{
@@ -168,6 +177,39 @@ def render_html(report):
                     // 선택된 탭 표시
                     document.getElementById(tabName).classList.add('active');
                     this.classList.add('active');
+                }});
+            }});
+
+            // 아코디언 기능 - 기여도 항목
+            const headers = document.querySelectorAll('.contrib-header');
+            headers.forEach(header => {{
+                header.addEventListener('click', function() {{
+                    const body = this.nextElementSibling;
+                    const toggle = this.querySelector('.contrib-toggle');
+                    const isActive = this.classList.contains('active');
+
+                    // 다른 항목 닫기 (같은 섹션 내에서)
+                    const parent = this.closest('.card');
+                    if (parent) {{
+                        parent.querySelectorAll('.contrib-header').forEach(h => {{
+                            if (h !== this) {{
+                                h.classList.remove('active');
+                                h.nextElementSibling?.classList.remove('active');
+                                h.querySelector('.contrib-toggle').textContent = '▶';
+                            }}
+                        }});
+                    }}
+
+                    // 현재 항목 토글
+                    if (isActive) {{
+                        this.classList.remove('active');
+                        body?.classList.remove('active');
+                        toggle.textContent = '▶';
+                    }} else {{
+                        this.classList.add('active');
+                        body?.classList.add('active');
+                        toggle.textContent = '▼';
+                    }}
                 }});
             }});
         }});
@@ -286,14 +328,22 @@ def render_business(biz, gates):
     for item in attr_items:
         html += f"""
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">{item["item"]}</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">{item["item"]}</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: {item['normalized']}%;"></div>
+                </div>
+                <div class="contrib-value">{item["weighted"]}</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">{item["insight_detail"]}</div>
+                <div class="contrib-compare">{item["insight_compare"]}</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: {item['normalized']}%;"></div>
-            </div>
-            <div class="contrib-value">{item["weighted"]}</div>
         </div>
         """
 
@@ -301,14 +351,22 @@ def render_business(biz, gates):
     for item in diff_items:
         html += f"""
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">{item["item"]}</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">{item["item"]}</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: {item['normalized']}%; background: #ef4444;"></div>
+                </div>
+                <div class="contrib-value">{item["weighted"]}</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">{item["insight_detail"]}</div>
+                <div class="contrib-compare">{item["insight_compare"]}</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: {item['normalized']}%; background: #ef4444;"></div>
-            </div>
-            <div class="contrib-value">{item["weighted"]}</div>
         </div>
         """
     html += """
@@ -376,15 +434,22 @@ def render_it(it):
         flag_badge = f"<span class='badge badge-warning' style='margin-left: 10px;'>{item['flag']}</span>" if item.get("flag") else ""
         html += f"""
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">{item["item"]}{flag_badge}</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">{item["item"]}{flag_badge}</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: {item['match']}%;"></div>
+                </div>
+                <div class="contrib-value">{item["match"]}%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">{item["insight_detail"]}</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">{item["insight_compare"]}</div>
+                <div class="contrib-compare">{item["insight_compare"]}</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: {item['match']}%;"></div>
-            </div>
-            <div class="contrib-value">{item["match"]}%</div>
         </div>
         """
     html += """

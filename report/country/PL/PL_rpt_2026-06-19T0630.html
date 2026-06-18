@@ -45,13 +45,21 @@
         .gate-status.fail { color: #ef4444; }
 
         /* 기여도 */
-        .contrib-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .contrib-item { border-bottom: 1px solid #e5e7eb; }
         .contrib-item:last-child { border-bottom: none; }
-        .contrib-name { flex: 1; }
-        .contrib-detail { font-size: 12px; color: #666; margin-top: 4px; }
+        .contrib-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; cursor: pointer; user-select: none; transition: background 0.2s; }
+        .contrib-header:hover { background: #f9fafb; }
+        .contrib-header.active { background: #f0f7ff; }
+        .contrib-header-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .contrib-toggle { font-size: 12px; color: #999; min-width: 20px; text-align: center; }
+        .contrib-name { flex: 1; font-weight: 500; }
         .contrib-bar { width: 150px; height: 20px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 0 20px; }
         .contrib-fill { height: 100%; background: #0066cc; transition: width 0.3s; }
         .contrib-value { font-weight: 600; min-width: 60px; text-align: right; }
+        .contrib-body { display: none; padding: 12px 12px 12px 32px; background: #f9fafb; border-left: 3px solid #0066cc; }
+        .contrib-body.active { display: block; }
+        .contrib-detail { font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.5; }
+        .contrib-compare { font-size: 12px; color: #0066cc; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; }
 
         /* DD */
         .dd-item { display: flex; gap: 15px; padding: 12px; background: #fff8e1; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #f59e0b; }
@@ -310,69 +318,117 @@
         <h3>📊 항목별 기여도</h3>
     <h4 style='margin-top: 15px; margin-bottom: 10px; color: #10b981;'>📈 매력도 (Attractiveness)</h4>
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">오토금융/리스 시장규모</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">오토금융/리스 시장규모</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 4.0%;"></div>
+                </div>
+                <div class="contrib-value">1.4</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">차량이 전체 리스의 73.8% 견인. 경차 +11.6%로 성장 주도. EU 최고속.</div>
+                <div class="contrib-compare">정규화 4.0 — 기여 낮음.</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 4.0%;"></div>
-            </div>
-            <div class="contrib-value">1.4</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">오토금융 성장률(CAGR)</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">오토금융 성장률(CAGR)</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 90.8%;"></div>
+                </div>
+                <div class="contrib-value">21.4</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">유럽 평균의 2배 이상. 성장성 면에서 권역 내 최상위 — 진출 매력의 핵심 근거.</div>
+                <div class="contrib-compare">정규화 90.8 — 매력도 강점.</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 90.8%;"></div>
-            </div>
-            <div class="contrib-value">21.4</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">금융 침투율(신차)</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">금융 침투율(신차)</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 65.0%;"></div>
+                </div>
+                <div class="contrib-value">15.3</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">단일 공식 침투율 부재. 신차 60~70%대가 리스/금융으로 조달되는 것으로 추정. 침투 여력 존재.</div>
+                <div class="contrib-compare">정규화 65.0 — 평이한 기여. (tier3 추정 — 실사 필요)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 65.0%;"></div>
-            </div>
-            <div class="contrib-value">15.3</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">평균 금리/APR</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">평균 금리/APR</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 53.3%;"></div>
+                </div>
+                <div class="contrib-value">9.4</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">민법 최고금리 상한 적용 하 프라임 차량대출 5~10% APR.</div>
+                <div class="contrib-compare">정규화 53.3 — 평이한 기여. (tier3 추정 — 실사 필요)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 53.3%;"></div>
-            </div>
-            <div class="contrib-value">9.4</div>
         </div>
         <h4 style='margin-top: 15px; margin-bottom: 10px; color: #ef4444;'>📉 진입난이도 (Difficulty)</h4>
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">캡티브 강도(점유율)</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">캡티브 강도(점유율)</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 70.0%; background: #ef4444;"></div>
+                </div>
+                <div class="contrib-value">35.0</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">캡티브는 2차 플레이어 그룹, 은행계 리스사가 지배. 단 ZPL 랭킹이 VW/BMW/Toyota 캡티브를 누락해 실제 비중은 더 높을 수 있음.</div>
+                <div class="contrib-compare">정규화 70.0 — 진입난이도 가중 요인. (tier3 추정 — 실사 필요)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 70.0%; background: #ef4444;"></div>
-            </div>
-            <div class="contrib-value">35.0</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">1위사 점유율</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">1위사 점유율</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 72.4%; background: #ef4444;"></div>
+                </div>
+                <div class="contrib-value">36.2</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">PKO Leasing(PKO BP) 1위, 차량금융 유일 PLN 10bn+. 은행계 집중도 상승세(상위10사 64%).</div>
+                <div class="contrib-compare">정규화 72.4 — 진입난이도 가중 요인.</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 72.4%; background: #ef4444;"></div>
-            </div>
-            <div class="contrib-value">36.2</div>
         </div>
         
     </div>
@@ -437,63 +493,98 @@
         <h3>📊 기술 항목별 유사도</h3>
     
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">솔루션 벤더</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">솔루션 벤더</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 78.0%;"></div>
+                </div>
+                <div class="contrib-value">78.0%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">현지 핀테크(Ailleron·LeaseLink)와 글로벌 벤더(NETSOL/Sopra)가 혼재.</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">영국 대비 정합도 78.0% — 부분 재사용, 일부 추가개발. 베이스라인 벤더 현지 존재 시 이식 토대 확보. (저신뢰 — 실사 권장)</div>
+                <div class="contrib-compare">영국 대비 정합도 78.0% — 부분 재사용, 일부 추가개발. 베이스라인 벤더 현지 존재 시 이식 토대 확보. (저신뢰 — 실사 권장)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 78.0%;"></div>
-            </div>
-            <div class="contrib-value">78.0%</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">솔루션 유형</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">솔루션 유형</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 60.0%;"></div>
+                </div>
+                <div class="contrib-value">60.0%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">자체개발·핀테크·패키지가 혼재된 환경.</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">영국 대비 정합도 60.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
+                <div class="contrib-compare">영국 대비 정합도 60.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 60.0%;"></div>
-            </div>
-            <div class="contrib-value">60.0%</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">신용정보(CB) 인프라</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">신용정보(CB) 인프라</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 75.0%;"></div>
+                </div>
+                <div class="contrib-value">75.0%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">BIK이 은행·비은행·BNPL·리스 데이터를 포괄하고 법적 보고 의무 존재. 성숙도 높음.</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발.</div>
+                <div class="contrib-compare">영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발.</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 75.0%;"></div>
-            </div>
-            <div class="contrib-value">75.0%</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">디지털 채널 성숙도</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">디지털 채널 성숙도</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 75.0%;"></div>
+                </div>
+                <div class="contrib-value">75.0%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">2025년 규제완화로 완전 디지털 계약 전환 중. Otomoto Pay·mObywatel 연동. 온라인 신청 약 42% 추정.</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
+                <div class="contrib-compare">영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 75.0%;"></div>
-            </div>
-            <div class="contrib-value">75.0%</div>
         </div>
         
         <div class="contrib-item">
-            <div style="flex: 1;">
-                <div class="contrib-name">차량회수 절차 용이성</div>
+            <div class="contrib-header">
+                <div class="contrib-header-left">
+                    <span class="contrib-toggle">▶</span>
+                    <div>
+                        <div class="contrib-name">차량회수 절차 용이성</div>
+                    </div>
+                </div>
+                <div class="contrib-bar">
+                    <div class="contrib-fill" style="width: 50.0%;"></div>
+                </div>
+                <div class="contrib-value">50.0%</div>
+            </div>
+            <div class="contrib-body">
                 <div class="contrib-detail">B2B 리스는 리스사가 소유권 보유해 계약위반시 회수 용이. 소비자 대출은 komornik(집행관) 절차로 장기 — 상품별 회수 모듈 분기 필요.</div>
-                <div class="contrib-detail" style="color: #0066cc; margin-top: 8px;">영국 대비 정합도 50.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
+                <div class="contrib-compare">영국 대비 정합도 50.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)</div>
             </div>
-            <div class="contrib-bar">
-                <div class="contrib-fill" style="width: 50.0%;"></div>
-            </div>
-            <div class="contrib-value">50.0%</div>
         </div>
         
     </div>
@@ -503,6 +594,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 탭 기능
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
@@ -521,6 +613,39 @@
                     // 선택된 탭 표시
                     document.getElementById(tabName).classList.add('active');
                     this.classList.add('active');
+                });
+            });
+
+            // 아코디언 기능 - 기여도 항목
+            const headers = document.querySelectorAll('.contrib-header');
+            headers.forEach(header => {
+                header.addEventListener('click', function() {
+                    const body = this.nextElementSibling;
+                    const toggle = this.querySelector('.contrib-toggle');
+                    const isActive = this.classList.contains('active');
+
+                    // 다른 항목 닫기 (같은 섹션 내에서)
+                    const parent = this.closest('.card');
+                    if (parent) {
+                        parent.querySelectorAll('.contrib-header').forEach(h => {
+                            if (h !== this) {
+                                h.classList.remove('active');
+                                h.nextElementSibling?.classList.remove('active');
+                                h.querySelector('.contrib-toggle').textContent = '▶';
+                            }
+                        });
+                    }
+
+                    // 현재 항목 토글
+                    if (isActive) {
+                        this.classList.remove('active');
+                        body?.classList.remove('active');
+                        toggle.textContent = '▶';
+                    } else {
+                        this.classList.add('active');
+                        body?.classList.add('active');
+                        toggle.textContent = '▼';
+                    }
                 });
             });
         });
