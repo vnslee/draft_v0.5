@@ -131,6 +131,26 @@ def fmt_dt(iso):
         return iso or ""
 
 
+def freshness_badge(fetched_at):
+    """fetched_at 기준 신선도 신호등 (스키마 규칙 10): 🟢방금/🟡30일/🔴90일+."""
+    if not fetched_at:
+        return ""
+    try:
+        s = fetched_at.replace("Z", "+00:00")
+        dt = datetime.datetime.fromisoformat(s)
+        now = datetime.datetime.now(dt.tzinfo)
+        days = (now - dt).days
+    except Exception:
+        return ""
+    if days <= 30:
+        c, t = "#137333", "🟢 최신"
+    elif days <= 90:
+        c, t = "#b06000", f"🟡 {days}일 경과"
+    else:
+        c, t = "#c5221f", "🔴 재조사 권장"
+    return badge(t, c + "1a", c)
+
+
 # 사분면/신뢰도/게이트 색 토큰
 QUAD_COLOR = {
     "즉시 진출": "#137333", "선별 진출": "#1967d2",
@@ -365,6 +385,74 @@ def country_maps(row):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 실사 체크리스트 (due_diligence) · 국가별 종합 인사이트 (overall_insight)
+# ─────────────────────────────────────────────────────────────────────────────
+def due_diligence_block(rpt):
+    """국가별 due_diligence 항목을 실사 체크리스트 테이블로 (스키마 규칙 9)."""
+    rows = rpt["ranking"]
+    if not any(r.get("due_diligence") for r in rows):
+        return ""
+    summ = {d["code"]: d.get("count") for d in rpt.get("due_diligence_summary", [])}
+    sub = []
+    for r in rows:
+        dds = r.get("due_diligence") or []
+        if not dds:
+            continue
+        body = "".join(
+            f'<tr class="border-b border-surface-border">'
+            f'<td class="py-xs px-sm font-medium text-on-surface align-top">{esc(d["item"])}</td>'
+            f'<td class="py-xs px-sm align-top">'
+            f'{badge("T" + str(d.get("tier", "-")), "#fef7e0", "#b06000")}</td>'
+            f'<td class="py-xs px-sm text-on-surface-variant align-top">{esc(d.get("action", ""))}</td>'
+            f'</tr>' for d in dds)
+        cnt = summ.get(r["code"], len(dds))
+        sub.append(
+            f'<div class="mb-md">'
+            f'<div class="flex items-center gap-sm mb-xs">'
+            f'<h3 class="font-label-md text-label-md uppercase text-primary m-0">'
+            f'{esc(r["country_ko"])} ({esc(r["code"])})</h3>'
+            f'{badge(str(cnt) + "건", "#eef0f2", "#555555")}</div>'
+            f'<table class="w-full text-left border-collapse"><thead>'
+            f'<tr class="border-b border-surface-border">'
+            f'<th class="py-xs px-sm font-label-sm text-label-sm text-text-secondary uppercase">항목</th>'
+            f'<th class="py-xs px-sm font-label-sm text-label-sm text-text-secondary uppercase">신뢰도</th>'
+            f'<th class="py-xs px-sm font-label-sm text-label-sm text-text-secondary uppercase">권장 액션</th>'
+            f'</tr></thead><tbody class="font-body-sm text-body-sm">{body}</tbody></table></div>')
+    return card(
+        f'<div class="flex items-center gap-sm mb-xs">'
+        f'<span class="material-symbols-outlined text-secondary">fact_check</span>'
+        f'<h2 class="font-headline-md text-headline-md text-primary m-0">실사 체크리스트 (Due Diligence)</h2></div>'
+        f'<p class="font-body-sm text-body-sm text-on-surface-variant mt-0 mb-md">'
+        f'저신뢰(T3+) 지표·FLAG 게이트 — 진출 확정 전 1차 출처·현지 실사로 확인 필요.</p>'
+        f'{"".join(sub)}')
+
+
+def country_insight_block(rpt):
+    """국가별 종합 인사이트(overall_insight) + freshness 신호등."""
+    rows = rpt["ranking"]
+    cards = []
+    for r in rows:
+        meta = r.get("country_meta", {})
+        oi = meta.get("overall_insight")
+        if not oi:
+            continue
+        fresh = freshness_badge(meta.get("fetched_at"))
+        cards.append(card(
+            f'<div class="flex items-center justify-between gap-sm mb-sm">'
+            f'<h3 class="font-label-md text-label-md uppercase text-primary m-0">'
+            f'{esc(r["country_ko"])} ({esc(r["code"])})</h3>'
+            f'<div class="flex items-center gap-xs">{fresh}'
+            f'<span class="font-label-sm text-label-sm text-text-secondary">'
+            f'{esc(meta.get("data_year", ""))} 데이터</span></div></div>'
+            f'<p class="font-body-sm text-body-sm text-on-surface m-0">{esc(oi)}</p>'))
+    if not cards:
+        return ""
+    return (f'<div><h2 class="font-headline-md text-headline-md text-primary mb-md">'
+            f'국가별 종합 인사이트</h2>'
+            f'<div class="grid grid-cols-1 md:grid-cols-3 gap-md">{"".join(cards)}</div></div>')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 탭: 요약
 # ─────────────────────────────────────────────────────────────────────────────
 def tab_summary(rpt):
@@ -474,11 +562,21 @@ def tab_summary(rpt):
             f'<td class="py-sm px-sm whitespace-nowrap">{fmt_num(c["build"])} '
             f'<span class="text-text-secondary">({int(c["discount"]*100)}%↓)</span></td>'
             f'</tr>')
-        # verdict 행
+        # verdict 행 (+ 퀵윈 판정 근거 / 저해요인)
+        rs = "".join(
+            f'<span class="inline-flex items-center gap-xs mr-md font-label-sm text-label-sm" '
+            f'style="color:#137333"><span class="material-symbols-outlined text-[14px]">'
+            f'check_circle</span>{esc(x)}</span>' for x in (r.get("quick_win_reasons") or []))
+        bl = "".join(
+            f'<span class="inline-flex items-center gap-xs mr-md font-label-sm text-label-sm" '
+            f'style="color:#c5221f"><span class="material-symbols-outlined text-[14px]">'
+            f'block</span>{esc(x)}</span>' for x in (r.get("blockers") or []))
+        extra = (f'<div class="mt-xs flex flex-wrap">{rs}{bl}</div>' if (rs or bl) else "")
         trs.append(
             f'<tr class="border-b border-surface-border bg-surface-light">'
             f'<td></td><td colspan="9" class="py-xs px-sm font-body-sm text-body-sm '
-            f'text-on-surface-variant italic">{esc(r["verdict"])}</td></tr>')
+            f'text-on-surface-variant"><span class="italic">{esc(r["verdict"])}</span>'
+            f'{extra}</td></tr>')
     table = card(
         f'<div class="flex items-center justify-between mb-md">'
         f'<h2 class="font-headline-md text-headline-md text-primary m-0">퀵윈 스코어링 랭킹</h2>'
@@ -489,7 +587,7 @@ def tab_summary(rpt):
         f'<tbody class="font-body-sm text-body-sm text-on-surface-variant">{"".join(trs)}</tbody>'
         f'</table></div>')
 
-    return f"{cards_html}{insight}{grid2}{table}"
+    return f"{cards_html}{insight}{grid2}{table}{due_diligence_block(rpt)}{country_insight_block(rpt)}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -543,8 +641,11 @@ def metric_matrix(rpt, tab_key, score_field):
             tier = it.get("tier")
             tflag = (f'<span class="text-label-sm text-text-disabled ml-xs" '
                      f'title="저신뢰(실사 필요)">·T{tier}</span>') if tier and tier >= 3 else ""
+            src = it.get("source")
+            src_html = (f'<div class="font-label-sm text-label-sm text-text-secondary mt-xs">'
+                        f'출처: {esc(src)}</div>') if src else ""
             cells += (f'<td class="py-sm px-sm align-top">'
-                      f'<div class="font-medium text-on-surface">{esc(val)}{tflag}</div>{sc}</td>')
+                      f'<div class="font-medium text-on-surface">{esc(val)}{tflag}</div>{sc}{src_html}</td>')
         body += f'<tr class="border-b border-surface-border hover:bg-surface-light">{cells}</tr>'
 
     note = ("★ = 퀵윈 국가 · T3+ = 저신뢰(실사 필요)"
@@ -574,16 +675,22 @@ def insight_list(rpt, tab_key, source):
             if not txt:
                 txt = it.get("insight", "")
             if txt:
-                picks.append((it["item"], txt))
+                picks.append((it["item"], txt, it.get("insight_ai_generated"), it.get("source")))
         if not picks:
             continue
+        ai_badge = ('<span class="px-2 py-0.5 rounded-md font-label-sm text-label-sm align-middle" '
+                    'style="background:#ede7f6;color:#5e35b1">AI</span>')
         lis = "".join(
             f'<li class="flex items-start gap-sm">'
             f'<span class="material-symbols-outlined text-secondary text-[18px] mt-xs shrink-0">'
             f'arrow_right</span>'
             f'<div><span class="font-label-md text-label-md text-primary">{esc(name)}</span> '
-            f'<span class="font-body-sm text-body-sm text-on-surface-variant">{esc(txt)}</span></div></li>'
-            for name, txt in picks[:5])
+            f'{ai_badge + " " if ai else ""}'
+            f'<span class="font-body-sm text-body-sm text-on-surface-variant">{esc(txt)}</span>'
+            + (f'<div class="font-label-sm text-label-sm text-text-secondary mt-xs">출처: {esc(src)}</div>'
+               if src else "")
+            + '</div></li>'
+            for name, txt, ai, src in picks[:5])
         out.append(card(
             f'<h3 class="font-label-md text-label-md uppercase text-secondary m-0 mb-sm">'
             f'{esc(r["country_ko"])} ({esc(r["code"])})</h3>'
@@ -628,10 +735,11 @@ def tab_market(rpt):
         it = items.get("오토금융/리스 시장규모")
         if it and it.get("timeseries"):
             ts = it["timeseries"]
+            est = (' ' + badge("추정", "#fef7e0", "#b06000")) if ts.get("estimated") else ""
             ts_cards.append(card(
                 f'<div class="flex items-center justify-between mb-sm">'
                 f'<h3 class="font-label-md text-label-md uppercase text-primary m-0">'
-                f'{esc(r["code"])} 시장규모</h3>'
+                f'{esc(r["code"])} 시장규모{est}</h3>'
                 f'<span class="font-label-sm text-label-sm text-text-secondary">'
                 f'CAGR {ts.get("cagr_hist","-")}% → {ts.get("cagr_forecast","-")}%</span></div>'
                 f'{line_chart(ts.get("history"), ts.get("forecast"))}'
@@ -672,13 +780,18 @@ def tab_regulation(rpt):
     head += "".join(f'<th class="py-sm px-sm font-label-md text-label-md text-text-secondary '
                     f'uppercase">{esc(r["code"])}</th>' for r in rows)
     gmap = {r["code"]: {ck["item"]: ck for ck in r.get("gate_checks", [])} for r in rows}
+    scope_ko = {"country": "국가", "segment": "세그먼트", "operating_model": "운영모델"}
     gbody = ""
     for gn in gate_names:
+        scope = next((gmap[r["code"]][gn].get("scope") for r in rows
+                      if gmap[r["code"]].get(gn)), None)
+        sclbl = (f'<div class="font-label-sm text-label-sm text-text-secondary">'
+                 f'{esc(scope_ko.get(scope, scope))} 층위</div>') if scope else ""
         cells = (f'<td class="py-sm px-sm font-medium text-primary sticky left-0 '
-                 f'bg-surface-container-lowest">{esc(gn)}</td>')
+                 f'bg-surface-container-lowest align-top">{esc(gn)}{sclbl}</td>')
         for r in rows:
             ck = gmap[r["code"]].get(gn)
-            cells += (f'<td class="py-sm px-sm">{gate_badge(ck["result"]) if ck else "—"}</td>')
+            cells += (f'<td class="py-sm px-sm align-top">{gate_badge(ck["result"]) if ck else "—"}</td>')
         gbody += f'<tr class="border-b border-surface-border hover:bg-surface-light">{cells}</tr>'
     gate_card = card(
         f'<div class="flex items-center justify-between mb-md">'
@@ -818,7 +931,10 @@ def render_html(rpt):
     with open(TPL_PATH, encoding="utf-8") as f:
         tpl = f.read()
 
-    footer_meta = f"기반 데이터 — internal v{esc(bo.get('internal_version', '-'))} · {esc(cv)}"
+    bv = ", ".join(f"{k}:{v}" for k, v in (bo.get("baseline_versions") or {}).items())
+    footer_meta = (f"기반 데이터 — internal v{esc(bo.get('internal_version', '-'))} · "
+                   f"schema v{esc(bo.get('schema_version', '-'))} · 국가 {esc(cv)}"
+                   + (f" · 베이스라인 {esc(bv)}" if bv else ""))
 
     return (tpl
             .replace("{{PAGE_TITLE}}", esc(title))
