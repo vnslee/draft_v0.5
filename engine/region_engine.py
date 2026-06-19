@@ -60,6 +60,7 @@ def quick_win_eval(qrules, A, D, S, gate_passed, has_flag):
 
 def run(region="EU", extra_items=None):
     internal = se.load(f"{DATA}/internal/internal_latest.json")
+    se.set_fx(internal)
     baseline = se.find_baseline(region)
     if baseline is None:
         raise SystemExit(f"[오류] region '{region}'의 베이스라인 국가(is_baseline:true) 없음")

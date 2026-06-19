@@ -18,6 +18,13 @@
 
   "maintenance_rate": 0.18,
 
+  "fx": {
+    "base": "EUR",
+    "as_of": "2026-06-01",
+    "rates": { "EUR": 1.0, "PLN": 0.23, "GBP": 1.17, "USD": 0.92 },
+    "note": "통화→base(EUR) 환산율. <CCY>_M 단위 금액 항목(시장규모 등) 정규화 전 EUR로 통일. 사람이 관리."
+  },
+
   "weights": {
     "business": {
       "오토금융/리스 시장규모": 0.30,

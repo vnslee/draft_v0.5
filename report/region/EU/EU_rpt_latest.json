@@ -34,9 +34,10 @@
     },
     "note": "퀵윈 = 게이트 통과 + 점수 임계 충족. ease = (100 - difficulty). 베이스라인 재사용률(유사도) 최우선 가중."
   },
-  "region_insight": "EU 권역 3개 후보 중 퀵윈 1개: 스페인(ES). 영국 베이스라인 재사용률(유사도) 기반으로 구축비·기간 절감폭이 커 우선 진입 적합. 최우선은 스페인(ES) — 유사도 82.2, 구축비 3000.0(40% 절감), 매력도 44.6.",
+  "region_insight": "EU 권역 3개 후보 중 퀵윈 2개: 스페인(ES), 독일(DE). 영국 베이스라인 재사용률(유사도) 기반으로 구축비·기간 절감폭이 커 우선 진입 적합. 최우선은 스페인(ES) — 유사도 82.2, 구축비 3000.0(40% 절감), 매력도 53.4.",
   "quick_wins": [
-    "ES"
+    "ES",
+    "DE"
   ],
   "ranking": [
     {
@@ -44,12 +45,12 @@
       "country_ko": "스페인",
       "rank": 1,
       "quick_win": true,
-      "quick_win_score": 58.5,
-      "attractiveness": 44.6,
+      "quick_win_score": 61.6,
+      "attractiveness": 53.4,
       "difficulty": 60.0,
       "ease": 40.0,
       "similarity": 82.2,
-      "quadrant": "JV/제휴 필요",
+      "quadrant": "선별 진출",
       "gate_passed": true,
       "gate_flag": false,
       "confidence": "하",
@@ -64,21 +65,22 @@
       },
       "quick_win_reasons": [
         "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
-        "유사도 82.2 → 베이스라인 재사용률 높아 구축비·기간 절감폭 큼"
+        "유사도 82.2 → 베이스라인 재사용률 높아 구축비·기간 절감폭 큼",
+        "매력도 53.4 양호"
       ],
       "blockers": [],
-      "verdict": "퀵윈 후보 — 사분면 'JV/제휴 필요', 영국 대비 유사도 82.2로 40% 절감(구축 3000.0, 13.0개월).",
+      "verdict": "퀵윈 후보 — 사분면 '선별 진출', 영국 대비 유사도 82.2로 40% 절감(구축 3000.0, 13.0개월).",
       "business_contributions": [
         {
           "axis": "attractiveness",
           "item": "오토금융/리스 시장규모",
           "raw": 18000,
-          "normalized": 0.8,
+          "normalized": 25.7,
           "weight": 0.353,
-          "weighted": 0.3,
+          "weighted": 9.1,
           "tier": 3,
           "insight_detail": "신차 등록 회복+렌팅 성장으로 신규 취급액 확대. 단 공식 단일 통계 부재로 추정치 — 실사 시 ASNEF/AEL 회원사 데이터 보정 필요.",
-          "insight_compare": "정규화 0.8 — 기여 낮음. (tier3 추정 — 실사 필요)"
+          "insight_compare": "정규화 25.7 — 기여 낮음. (tier3 추정 — 실사 필요)"
         },
         {
           "axis": "attractiveness",
@@ -299,259 +301,16 @@
       ]
     },
     {
-      "code": "PL",
-      "country_ko": "폴란드",
-      "rank": 2,
-      "quick_win": false,
-      "quick_win_score": 53.2,
-      "attractiveness": 47.5,
-      "difficulty": 71.2,
-      "ease": 28.8,
-      "similarity": 73.4,
-      "quadrant": "JV/제휴 필요",
-      "gate_passed": true,
-      "gate_flag": false,
-      "confidence": "중",
-      "cost": {
-        "baseline": "UK",
-        "baseline_build": 5000,
-        "discount": 0.3,
-        "build": 3500.0,
-        "months": 14.2,
-        "maintenance_yr": 630.0,
-        "unit": "GBP_M(데모)"
-      },
-      "quick_win_reasons": [
-        "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
-        "유사도 73.4 → 베이스라인 재사용률 높아 구축비·기간 절감폭 큼"
-      ],
-      "blockers": [
-        "진입난이도 71.2 높음(캡티브/집중도)"
-      ],
-      "verdict": "퀵윈 제외 — 진입난이도 71.2 높음(캡티브/집중도). 사분면 'JV/제휴 필요', 유사도 73.4.",
-      "business_contributions": [
-        {
-          "axis": "attractiveness",
-          "item": "오토금융/리스 시장규모",
-          "raw": 88100,
-          "normalized": 4.0,
-          "weight": 0.353,
-          "weighted": 1.4,
-          "tier": 2,
-          "insight_detail": "차량이 전체 리스의 73.8% 견인. 경차 +11.6%로 성장 주도. EU 최고속.",
-          "insight_compare": "정규화 4.0 — 기여 낮음."
-        },
-        {
-          "axis": "attractiveness",
-          "item": "오토금융 성장률(CAGR)",
-          "raw": 10.9,
-          "normalized": 90.8,
-          "weight": 0.235,
-          "weighted": 21.4,
-          "tier": 2,
-          "insight_detail": "유럽 평균의 2배 이상. 성장성 면에서 권역 내 최상위 — 진출 매력의 핵심 근거.",
-          "insight_compare": "정규화 90.8 — 매력도 강점."
-        },
-        {
-          "axis": "attractiveness",
-          "item": "금융 이용률(신차)",
-          "raw": 65,
-          "normalized": 65.0,
-          "weight": 0.235,
-          "weighted": 15.3,
-          "tier": 3,
-          "insight_detail": "단일 공식 침투율 부재. 신차 60~70%대가 리스/금융으로 조달되는 것으로 추정. 침투 여력 존재.",
-          "insight_compare": "정규화 65.0 — 평이한 기여. (tier3 추정 — 실사 필요)"
-        },
-        {
-          "axis": "attractiveness",
-          "item": "평균 금리/APR",
-          "raw": 8.0,
-          "normalized": 53.3,
-          "weight": 0.176,
-          "weighted": 9.4,
-          "tier": 3,
-          "insight_detail": "민법 최고금리 상한 적용 하 프라임 차량대출 5~10% APR.",
-          "insight_compare": "정규화 53.3 — 평이한 기여. (tier3 추정 — 실사 필요)"
-        },
-        {
-          "axis": "difficulty",
-          "item": "캡티브 강도(점유율)",
-          "raw": 30,
-          "normalized": 70.0,
-          "weight": 0.5,
-          "weighted": 35.0,
-          "tier": 3,
-          "insight_detail": "캡티브는 2차 플레이어 그룹, 은행계 리스사가 지배. 단 ZPL 랭킹이 VW/BMW/Toyota 캡티브를 누락해 실제 비중은 더 높을 수 있음.",
-          "insight_compare": "정규화 70.0 — 진입난이도 가중 요인. (tier3 추정 — 실사 필요)"
-        },
-        {
-          "axis": "difficulty",
-          "item": "1위사 점유율",
-          "raw": 13.8,
-          "normalized": 72.4,
-          "weight": 0.5,
-          "weighted": 36.2,
-          "tier": 2,
-          "insight_detail": "PKO Leasing(PKO BP) 1위, 차량금융 유일 PLN 10bn+. 은행계 집중도 상승세(상위10사 64%).",
-          "insight_compare": "정규화 72.4 — 진입난이도 가중 요인."
-        }
-      ],
-      "it_contributions": [
-        {
-          "item": "솔루션 벤더",
-          "match": 78.0,
-          "weight": 0.471,
-          "weighted": 36.7,
-          "tier": 3,
-          "flag": null,
-          "insight_detail": "현지 핀테크(Ailleron·LeaseLink)와 글로벌 벤더(NETSOL/Sopra)가 혼재.",
-          "insight_compare": "영국 대비 정합도 78.0% — 부분 재사용, 일부 추가개발. 베이스라인 벤더 현지 존재 시 이식 토대 확보. (저신뢰 — 실사 권장)",
-          "cand": "Ailleron, LeaseLink(mBan",
-          "baseline": "NETSOL(NFS Ascent), Soli"
-        },
-        {
-          "item": "솔루션 유형",
-          "match": 60.0,
-          "weight": 0.0,
-          "weighted": 0.0,
-          "tier": 3,
-          "flag": null,
-          "insight_detail": "자체개발·핀테크·패키지가 혼재된 환경.",
-          "insight_compare": "영국 대비 정합도 60.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
-          "note": "베이스라인 비교 불가, 기본값"
-        },
-        {
-          "item": "신용정보(CB) 인프라",
-          "match": 75.0,
-          "weight": 0.235,
-          "weighted": 17.6,
-          "tier": 1,
-          "flag": null,
-          "insight_detail": "BIK이 은행·비은행·BNPL·리스 데이터를 포괄하고 법적 보고 의무 존재. 성숙도 높음.",
-          "insight_compare": "영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발.",
-          "cand": 4,
-          "baseline": 5
-        },
-        {
-          "item": "디지털 채널 성숙도",
-          "match": 75.0,
-          "weight": 0.176,
-          "weighted": 13.2,
-          "tier": 3,
-          "flag": null,
-          "insight_detail": "2025년 규제완화로 완전 디지털 계약 전환 중. Otomoto Pay·mObywatel 연동. 온라인 신청 약 42% 추정.",
-          "insight_compare": "영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
-          "cand": 4,
-          "baseline": 5
-        },
-        {
-          "item": "차량회수 절차 용이성",
-          "match": 50.0,
-          "weight": 0.118,
-          "weighted": 5.9,
-          "tier": 3,
-          "flag": null,
-          "insight_detail": "B2B 리스는 리스사가 소유권 보유해 계약위반시 회수 용이. 소비자 대출은 komornik(집행관) 절차로 장기 — 상품별 회수 모듈 분기 필요.",
-          "insight_compare": "영국 대비 정합도 50.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
-          "cand": 4,
-          "baseline": 2
-        }
-      ],
-      "gate_checks": [
-        {
-          "item": "외국인 지분 한도",
-          "scope": "country",
-          "result": "PASS",
-          "tier": 2
-        },
-        {
-          "item": "외환 송금 자유도",
-          "scope": "country",
-          "result": "PASS",
-          "tier": 2
-        },
-        {
-          "item": "라이선스 취득 가능 여부(외국사)",
-          "scope": "segment",
-          "result": "PASS",
-          "tier": 1
-        },
-        {
-          "item": "데이터 현지화 의무",
-          "scope": "operating_model",
-          "result": "PASS",
-          "tier": 1
-        },
-        {
-          "item": "라이선스 체제(세그먼트별)",
-          "scope": "segment",
-          "result": "PASS",
-          "tier": 1
-        }
-      ],
-      "due_diligence": [
-        {
-          "code": "PL",
-          "item": "금융 이용률(신차)",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "평균 금리/APR",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "캡티브 강도(점유율)",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "솔루션 벤더",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "솔루션 유형",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "디지털 채널 성숙도",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "차량회수 절차 용이성",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        },
-        {
-          "code": "PL",
-          "item": "OEM 순위",
-          "tier": 3,
-          "action": "1차 출처·실사 확인 필요"
-        }
-      ]
-    },
-    {
       "code": "DE",
       "country_ko": "독일",
-      "rank": 3,
-      "quick_win": false,
-      "quick_win_score": 51.0,
-      "attractiveness": 31.5,
+      "rank": 2,
+      "quick_win": true,
+      "quick_win_score": 58.4,
+      "attractiveness": 52.6,
       "difficulty": 42.5,
       "ease": 57.5,
       "similarity": 64.0,
-      "quadrant": "기회 탐색",
+      "quadrant": "즉시 진출",
       "gate_passed": true,
       "gate_flag": false,
       "confidence": "중",
@@ -567,23 +326,22 @@
       "quick_win_reasons": [
         "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
         "유사도 64.0 → 부분 재사용 가능",
+        "매력도 52.6 양호",
         "진입난이도 42.5 낮음"
       ],
-      "blockers": [
-        "매력도 31.5 낮음 → 시장 매력 제한"
-      ],
-      "verdict": "퀵윈 제외 — 매력도 31.5 낮음 → 시장 매력 제한. 사분면 '기회 탐색', 유사도 64.0.",
+      "blockers": [],
+      "verdict": "퀵윈 후보 — 사분면 '즉시 진출', 영국 대비 유사도 64.0로 20% 절감(구축 4000.0, 15.5개월).",
       "business_contributions": [
         {
           "axis": "attractiveness",
           "item": "오토금융/리스 시장규모",
           "raw": 47000,
-          "normalized": 2.1,
+          "normalized": 61.8,
           "weight": 0.353,
-          "weighted": 0.7,
+          "weighted": 21.8,
           "tier": 3,
           "insight_detail": "정의(취급액 vs 대출잔액)에 따라 추정치 편차 큼(연 47B$~잔액 219B$). 절대규모는 유럽 최대급이나 성숙시장이라 성장은 한 자릿수.",
-          "insight_compare": "정규화 2.1 — 기여 낮음. (tier3 추정 — 실사 필요)"
+          "insight_compare": "정규화 61.8 — 평이한 기여. (tier3 추정 — 실사 필요)"
         },
         {
           "axis": "attractiveness",
@@ -780,6 +538,250 @@
         {
           "code": "DE",
           "item": "솔루션 유형",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        }
+      ]
+    },
+    {
+      "code": "PL",
+      "country_ko": "폴란드",
+      "rank": 3,
+      "quick_win": false,
+      "quick_win_score": 56.3,
+      "attractiveness": 56.3,
+      "difficulty": 71.2,
+      "ease": 28.8,
+      "similarity": 73.4,
+      "quadrant": "선별 진출",
+      "gate_passed": true,
+      "gate_flag": false,
+      "confidence": "중",
+      "cost": {
+        "baseline": "UK",
+        "baseline_build": 5000,
+        "discount": 0.3,
+        "build": 3500.0,
+        "months": 14.2,
+        "maintenance_yr": 630.0,
+        "unit": "GBP_M(데모)"
+      },
+      "quick_win_reasons": [
+        "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
+        "유사도 73.4 → 베이스라인 재사용률 높아 구축비·기간 절감폭 큼",
+        "매력도 56.3 양호"
+      ],
+      "blockers": [
+        "진입난이도 71.2 높음(캡티브/집중도)"
+      ],
+      "verdict": "퀵윈 제외 — 진입난이도 71.2 높음(캡티브/집중도). 사분면 '선별 진출', 유사도 73.4.",
+      "business_contributions": [
+        {
+          "axis": "attractiveness",
+          "item": "오토금융/리스 시장규모",
+          "raw": 88100,
+          "normalized": 28.9,
+          "weight": 0.353,
+          "weighted": 10.2,
+          "tier": 2,
+          "insight_detail": "차량이 전체 리스의 73.8% 견인. 경차 +11.6%로 성장 주도. EU 최고속.",
+          "insight_compare": "정규화 28.9 — 기여 낮음."
+        },
+        {
+          "axis": "attractiveness",
+          "item": "오토금융 성장률(CAGR)",
+          "raw": 10.9,
+          "normalized": 90.8,
+          "weight": 0.235,
+          "weighted": 21.4,
+          "tier": 2,
+          "insight_detail": "유럽 평균의 2배 이상. 성장성 면에서 권역 내 최상위 — 진출 매력의 핵심 근거.",
+          "insight_compare": "정규화 90.8 — 매력도 강점."
+        },
+        {
+          "axis": "attractiveness",
+          "item": "금융 이용률(신차)",
+          "raw": 65,
+          "normalized": 65.0,
+          "weight": 0.235,
+          "weighted": 15.3,
+          "tier": 3,
+          "insight_detail": "단일 공식 침투율 부재. 신차 60~70%대가 리스/금융으로 조달되는 것으로 추정. 침투 여력 존재.",
+          "insight_compare": "정규화 65.0 — 평이한 기여. (tier3 추정 — 실사 필요)"
+        },
+        {
+          "axis": "attractiveness",
+          "item": "평균 금리/APR",
+          "raw": 8.0,
+          "normalized": 53.3,
+          "weight": 0.176,
+          "weighted": 9.4,
+          "tier": 3,
+          "insight_detail": "민법 최고금리 상한 적용 하 프라임 차량대출 5~10% APR.",
+          "insight_compare": "정규화 53.3 — 평이한 기여. (tier3 추정 — 실사 필요)"
+        },
+        {
+          "axis": "difficulty",
+          "item": "캡티브 강도(점유율)",
+          "raw": 30,
+          "normalized": 70.0,
+          "weight": 0.5,
+          "weighted": 35.0,
+          "tier": 3,
+          "insight_detail": "캡티브는 2차 플레이어 그룹, 은행계 리스사가 지배. 단 ZPL 랭킹이 VW/BMW/Toyota 캡티브를 누락해 실제 비중은 더 높을 수 있음.",
+          "insight_compare": "정규화 70.0 — 진입난이도 가중 요인. (tier3 추정 — 실사 필요)"
+        },
+        {
+          "axis": "difficulty",
+          "item": "1위사 점유율",
+          "raw": 13.8,
+          "normalized": 72.4,
+          "weight": 0.5,
+          "weighted": 36.2,
+          "tier": 2,
+          "insight_detail": "PKO Leasing(PKO BP) 1위, 차량금융 유일 PLN 10bn+. 은행계 집중도 상승세(상위10사 64%).",
+          "insight_compare": "정규화 72.4 — 진입난이도 가중 요인."
+        }
+      ],
+      "it_contributions": [
+        {
+          "item": "솔루션 벤더",
+          "match": 78.0,
+          "weight": 0.471,
+          "weighted": 36.7,
+          "tier": 3,
+          "flag": null,
+          "insight_detail": "현지 핀테크(Ailleron·LeaseLink)와 글로벌 벤더(NETSOL/Sopra)가 혼재.",
+          "insight_compare": "영국 대비 정합도 78.0% — 부분 재사용, 일부 추가개발. 베이스라인 벤더 현지 존재 시 이식 토대 확보. (저신뢰 — 실사 권장)",
+          "cand": "Ailleron, LeaseLink(mBan",
+          "baseline": "NETSOL(NFS Ascent), Soli"
+        },
+        {
+          "item": "솔루션 유형",
+          "match": 60.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "tier": 3,
+          "flag": null,
+          "insight_detail": "자체개발·핀테크·패키지가 혼재된 환경.",
+          "insight_compare": "영국 대비 정합도 60.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
+          "note": "베이스라인 비교 불가, 기본값"
+        },
+        {
+          "item": "신용정보(CB) 인프라",
+          "match": 75.0,
+          "weight": 0.235,
+          "weighted": 17.6,
+          "tier": 1,
+          "flag": null,
+          "insight_detail": "BIK이 은행·비은행·BNPL·리스 데이터를 포괄하고 법적 보고 의무 존재. 성숙도 높음.",
+          "insight_compare": "영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발.",
+          "cand": 4,
+          "baseline": 5
+        },
+        {
+          "item": "디지털 채널 성숙도",
+          "match": 75.0,
+          "weight": 0.176,
+          "weighted": 13.2,
+          "tier": 3,
+          "flag": null,
+          "insight_detail": "2025년 규제완화로 완전 디지털 계약 전환 중. Otomoto Pay·mObywatel 연동. 온라인 신청 약 42% 추정.",
+          "insight_compare": "영국 대비 정합도 75.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
+          "cand": 4,
+          "baseline": 5
+        },
+        {
+          "item": "차량회수 절차 용이성",
+          "match": 50.0,
+          "weight": 0.118,
+          "weighted": 5.9,
+          "tier": 3,
+          "flag": null,
+          "insight_detail": "B2B 리스는 리스사가 소유권 보유해 계약위반시 회수 용이. 소비자 대출은 komornik(집행관) 절차로 장기 — 상품별 회수 모듈 분기 필요.",
+          "insight_compare": "영국 대비 정합도 50.0% — 부분 재사용, 일부 추가개발. (저신뢰 — 실사 권장)",
+          "cand": 4,
+          "baseline": 2
+        }
+      ],
+      "gate_checks": [
+        {
+          "item": "외국인 지분 한도",
+          "scope": "country",
+          "result": "PASS",
+          "tier": 2
+        },
+        {
+          "item": "외환 송금 자유도",
+          "scope": "country",
+          "result": "PASS",
+          "tier": 2
+        },
+        {
+          "item": "라이선스 취득 가능 여부(외국사)",
+          "scope": "segment",
+          "result": "PASS",
+          "tier": 1
+        },
+        {
+          "item": "데이터 현지화 의무",
+          "scope": "operating_model",
+          "result": "PASS",
+          "tier": 1
+        },
+        {
+          "item": "라이선스 체제(세그먼트별)",
+          "scope": "segment",
+          "result": "PASS",
+          "tier": 1
+        }
+      ],
+      "due_diligence": [
+        {
+          "code": "PL",
+          "item": "금융 이용률(신차)",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "평균 금리/APR",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "캡티브 강도(점유율)",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "솔루션 벤더",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "솔루션 유형",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "디지털 채널 성숙도",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "차량회수 절차 용이성",
+          "tier": 3,
+          "action": "1차 출처·실사 확인 필요"
+        },
+        {
+          "code": "PL",
+          "item": "OEM 순위",
           "tier": 3,
           "action": "1차 출처·실사 확인 필요"
         }
