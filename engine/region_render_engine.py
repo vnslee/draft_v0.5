@@ -267,6 +267,82 @@ def line_chart(history, forecast, color="#00204e"):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 기여도 분해 (누적 수평 막대) — *_contributions[].weighted 표현
+#   막대 길이 = 해당 축 점수(0~100), 색 구간 = 항목별 가중 기여(weighted).
+#   계산은 하지 않고 리포트가 이미 박아둔 weighted를 그대로 쌓는다.
+# ─────────────────────────────────────────────────────────────────────────────
+CONTRIB_PALETTE = ["#00204e", "#005db7", "#1967d2", "#4a90d9", "#7cb342",
+                   "#00897b", "#b06000", "#8e44ad", "#c5221f", "#5f6368"]
+
+
+def _contrib_color_map(names):
+    return {n: CONTRIB_PALETTE[i % len(CONTRIB_PALETTE)] for i, n in enumerate(names)}
+
+
+def stacked_bar(segments, scale=100, height=16):
+    """누적 수평 막대. segments=[(label, value, color)]. width%는 scale 기준."""
+    parts = []
+    for label, val, color in segments:
+        if not val or val <= 0:
+            continue
+        wpct = max(0.0, min(100.0, val / scale * 100))
+        parts.append(f'<div style="width:{wpct:.1f}%;background:{color}" '
+                     f'title="{esc(label)}: {fmt_num(val)}" class="h-full"></div>')
+    inner = "".join(parts) or '<div class="h-full w-0"></div>'
+    return (f'<div class="flex w-full rounded-full overflow-hidden bg-surface-border" '
+            f'style="height:{height}px">{inner}</div>')
+
+
+def contribution_breakdown(rows, kind):
+    """국가별 기여도 누적 막대 + 공유 범례.
+    kind='attractiveness'|'difficulty'(business_contributions) | 'similarity'(it_contributions)."""
+    if kind == "similarity":
+        get_contribs = lambda r: r.get("it_contributions", [])
+        keep = lambda c: True
+    else:
+        get_contribs = lambda r: r.get("business_contributions", [])
+        keep = lambda c: c.get("axis") == kind
+    # 항목명 union (등장 순서 유지, weighted>0만)
+    names, seen = [], set()
+    for r in rows:
+        for c in get_contribs(r):
+            if keep(c) and (c.get("weighted") or 0) > 0 and c["item"] not in seen:
+                names.append(c["item"])
+                seen.add(c["item"])
+    if not names:
+        return ""
+    cmap = _contrib_color_map(names)
+
+    bars = []
+    for r in rows:
+        segs, total = [], 0.0
+        for c in get_contribs(r):
+            if not keep(c):
+                continue
+            w = c.get("weighted") or 0
+            if w <= 0:
+                continue
+            segs.append((c["item"], w, cmap.get(c["item"], "#9aa0aa")))
+            total += w
+        if not segs:
+            continue
+        bars.append(
+            f'<div class="flex items-center gap-sm">'
+            f'<span class="font-label-md text-label-md text-primary w-8 shrink-0">{esc(r["code"])}</span>'
+            f'<div class="flex-1">{stacked_bar(segs)}</div>'
+            f'<span class="font-label-md text-label-md text-primary w-10 text-right shrink-0">'
+            f'{fmt_num(round(total, 1))}</span></div>')
+    if not bars:
+        return ""
+    legend = "".join(
+        f'<span class="flex items-center gap-xs font-label-sm text-label-sm text-text-secondary">'
+        f'<span class="w-3 h-3 rounded-sm shrink-0" style="background:{cmap[n]}"></span>{esc(n)}</span>'
+        for n in names)
+    return (f'<div class="flex flex-col gap-sm mb-md">{"".join(bars)}</div>'
+            f'<div class="flex flex-wrap gap-md pt-sm border-t border-surface-border">{legend}</div>')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 공통 카드/섹션 헬퍼
 # ─────────────────────────────────────────────────────────────────────────────
 def card(inner, extra=""):
@@ -529,6 +605,22 @@ def tab_market(rpt):
         f'<h2 class="font-headline-md text-headline-md text-primary m-0 mb-md">시장 매력도 비교</h2>'
         f'{vbar_chart(series, 100)}')
 
+    # 점수 기여도 분해 (매력도/난이도) — business_contributions[].weighted
+    attr_bd = contribution_breakdown(rows, "attractiveness")
+    diff_bd = contribution_breakdown(rows, "difficulty")
+    contrib_card = ""
+    if attr_bd or diff_bd:
+        attr_sec = (f'<h3 class="font-label-md text-label-md uppercase text-secondary m-0 mb-sm">'
+                    f'매력도 (Attractiveness)</h3>{attr_bd}') if attr_bd else ""
+        diff_sec = (f'<h3 class="font-label-md text-label-md uppercase text-secondary m-0 mb-sm '
+                    f'mt-lg">진입난이도 (Difficulty)</h3>{diff_bd}') if diff_bd else ""
+        contrib_card = card(
+            f'<h2 class="font-headline-md text-headline-md text-primary m-0 mb-xs">점수 기여도 분해</h2>'
+            f'<p class="font-body-sm text-body-sm text-on-surface-variant mt-0 mb-md">'
+            f'막대 길이 = 해당 축 점수, 색 구간 = 항목별 가중 기여(weighted). '
+            f'어떤 지표가 점수를 끌어올리는지 분해해 보여줍니다.</p>'
+            f'{attr_sec}{diff_sec}')
+
     # 시장규모 시계열 (timeseries 보유 항목)
     ts_cards = []
     for r in rows:
@@ -559,7 +651,7 @@ def tab_market(rpt):
     insights = insight_list(rpt, TAB_MARKET, "biz")
     insights_block = (f'<div><h2 class="font-headline-md text-headline-md text-primary mb-md">'
                       f'시장 인사이트</h2>{insights}</div>') if insights else ""
-    return f"{chart}{ts_block}{matrix}{insights_block}"
+    return f"{chart}{contrib_card}{ts_block}{matrix}{insights_block}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -650,6 +742,14 @@ def tab_system(rpt):
         f'<h2 class="font-headline-md text-headline-md text-primary m-0 mb-md">'
         f'IT 유사도 (베이스라인 {esc(bcode)} 재사용률)</h2>{vbar_chart(series, 100)}')
 
+    # 유사도 기여도 분해 — it_contributions[].weighted
+    sim_bd = contribution_breakdown(rows, "similarity")
+    contrib_card = card(
+        f'<h2 class="font-headline-md text-headline-md text-primary m-0 mb-xs">유사도 기여도 분해</h2>'
+        f'<p class="font-body-sm text-body-sm text-on-surface-variant mt-0 mb-md">'
+        f'막대 길이 = 유사도 점수, 색 구간 = IT 항목별 가중 기여(weighted). '
+        f'재사용률을 어떤 항목이 견인하는지 분해합니다.</p>{sim_bd}') if sim_bd else ""
+
     # 비용 카드
     cost_cards = []
     for r in rows:
@@ -675,7 +775,7 @@ def tab_system(rpt):
     insights = insight_list(rpt, TAB_SYSTEM, "it")
     insights_block = (f'<div><h2 class="font-headline-md text-headline-md text-primary mb-md">'
                       f'시스템 인사이트</h2>{insights}</div>') if insights else ""
-    return f"{sim_chart}{cost_block}{matrix}{insights_block}"
+    return f"{sim_chart}{contrib_card}{cost_block}{matrix}{insights_block}"
 
 
 TAB_BUILDERS = {
