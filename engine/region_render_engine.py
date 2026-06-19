@@ -12,7 +12,7 @@
 입력 리포트 스키마: report/region/README.md, engine/region_engine.py 참조.
 스코어링/계산은 일절 하지 않고 "표현"만 담당한다 (관심사 분리).
 """
-import json, os, sys, glob, shutil, html, datetime
+import json, os, sys, glob, html, datetime
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(BASE)
@@ -759,13 +759,10 @@ def render(region="EU", version=None):
     out = os.path.join(outdir, f"{region}_rpt_{ts}.html")
     with open(out, "w", encoding="utf-8") as f:
         f.write(out_html)
-    latest = os.path.join(outdir, f"{region}_rpt_latest.html")
-    shutil.copy(out, latest)
 
     print(f"[{region}] 렌더 완료 — 입력 {os.path.relpath(src, REPO)}")
     print(f"  후보 {rpt.get('candidate_count','?')}개 · 퀵윈 {rpt.get('quick_wins',[])} · 탭 {len(TABS)}개")
     print(f"→ {os.path.relpath(out, REPO)}")
-    print(f"→ {os.path.relpath(latest, REPO)} (latest 포인터)")
     return out
 
 

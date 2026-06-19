@@ -19,7 +19,7 @@ python3 engine/region_render_engine.py EU 2026-06-19T1200 # 특정 버전 렌더
 ```
 
 입력: `report/region/<REGION>/<REGION>_rpt_latest.json` (또는 지정 버전)
-출력: `report/region/<REGION>/<REGION>_rpt_<TS>.html` + `<REGION>_rpt_latest.html`
+출력: `report/region/<REGION>/<REGION>_rpt_<TS>.html` (버전 파일만 생성, latest HTML 없음)
 
 - **탭 구성(스펙 PR2):** 요약(Summary) · 시장(Market) · 규제(Regulation) · 상품(Product) · 시스템(System)
   - 요약: 후보·퀵윈 요약 카드, 권역 인사이트, 매력도×난이도 사분면, 퀵윈 룰셋, 퀵윈 스코어링 랭킹표
