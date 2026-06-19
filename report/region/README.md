@@ -82,6 +82,8 @@ quick_win = 게이트 통과(FAIL 없음)
 | `quick_wins` | 퀵윈으로 판정된 국가코드 배열 |
 | `region_insight` | 권역 종합 코멘트(도입부 앵커) |
 | `ranking[]` | 국가별 결과. 퀵윈 우선 → quick_win_score 내림차순으로 `rank` |
+| ┗ `country_meta` | 국가 원본 메타(country/currency/data_year/fetched_at/overall_insight 등) |
+| ┗ `items` | **국가 원본 전체 항목 배열(verbatim)** — context·게이트·확장(ext) 포함. 화면이 권역 보고서 하나로 국가 상세까지 렌더 가능 |
 | ┗ `quick_win` / `quick_win_score` | 퀵윈 여부 / 종합 점수 |
 | ┗ `attractiveness`·`difficulty`·`similarity`·`ease`·`quadrant` | 2축+유사도 스코어와 사분면 |
 | ┗ `gate_passed`·`gate_flag`·`gate_checks` | 게이트 통과 여부·저신뢰(FLAG) 존재·상세 |

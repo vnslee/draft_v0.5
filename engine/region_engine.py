@@ -113,6 +113,11 @@ def run(region="EU", extra_items=None):
                         f"사분면 '{quad}', 유사도 {S}."),
             "business_contributions": bc, "it_contributions": ic,
             "gate_checks": checks, "due_diligence": dd,
+            # 국가 원본 전체 임베드 — 화면이 권역 보고서 하나로 국가 상세까지 렌더
+            "country_meta": {k: c.get(k) for k in (
+                "country", "country_ko", "code", "region", "is_baseline", "currency",
+                "schema_version", "data_year", "fetched_at", "fetched_by", "overall_insight")},
+            "items": c["items"],
         })
 
     # 퀵윈 우선, 그다음 퀵윈점수 내림차순 정렬 → rank 부여
@@ -144,6 +149,7 @@ def run(region="EU", extra_items=None):
             "attractiveness", "difficulty", "ease", "similarity", "quadrant",
             "gate_passed", "gate_flag", "confidence", "cost",
             "quick_win_reasons", "blockers", "verdict",
+            "country_meta", "items",
             "business_contributions", "it_contributions", "gate_checks", "due_diligence")}
             for r in rows],
         "gate_failed": gate_failed,
