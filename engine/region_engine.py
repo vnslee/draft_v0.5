@@ -13,6 +13,7 @@
 """
 import json, os, sys, glob, shutil
 import scoring_engine as se
+import region_render_engine as rre
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(BASE)
@@ -172,6 +173,7 @@ def run(region="EU", extra_items=None):
               f"매력 {r['attractiveness']} 난이 {r['difficulty']} 유사 {r['similarity']} "
               f"({r['quadrant']}) 구축 {r['cost']['build']}")
     print(f"→ {out}")
+    rre.render(region)
     return rpt
 
 

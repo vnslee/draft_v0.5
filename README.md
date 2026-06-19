@@ -24,14 +24,20 @@ draft_v0.5/
 │   │   ├── country_prompt.md       # 국가별 프롬프트
 │   │   └── country_schema.md       # 국가별 스키마
 │   └── README.md
-├── engine/                         # 스코어링 엔진
-│   └── scoring_engine.py           # 점수 계산 로직
+├── engine/                         # 엔진
+│   ├── scoring_engine.py           # 단일국 점수 계산 로직
+│   ├── region_engine.py            # 권역 퀵윈 스코어링(JSON 산출)
+│   └── region_render_engine.py     # 권역 진단 보고서 렌더링(JSON→HTML, PR2)
 ├── report/
 │   ├── country/                    # 국가별 리포트
 │   │   ├── PL/                     # 폴란드 리포트
 │   │   │   └── PL_rpt_2026-06-18T1500.json
 │   │   └── README.md
-│   └── region/                     # 지역별 리포트
+│   └── region/                     # 권역별 리포트
+│       ├── EU/                      # 유럽 권역
+│       │   ├── index.json           # 버전 매니페스트
+│       │   ├── EU_rpt_latest.json   # 권역 퀵윈 리포트(데이터)
+│       │   └── EU_rpt_latest.html   # 렌더된 진단 보고서(PR2)
 │       └── README.md
 ├── spec/
 │   └── web_design.md               # 웹 디자인 명세서

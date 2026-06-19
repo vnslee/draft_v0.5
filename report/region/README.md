@@ -4,6 +4,33 @@
 나머지 국가들을 일괄 스코어링하여 **퀵윈 후보**(적은 노력으로 빠르게 성과를 낼 국가)를 산출한다.
 
 생성 엔진: `engine/region_engine.py` (단일국 엔진 `engine/scoring_engine.py`의 스코어링 로직 재사용)
+렌더 엔진: `engine/region_render_engine.py` (리포트 JSON → 권역 진단 보고서 HTML, 디자인 스펙 PR2)
+
+---
+
+## 0. 렌더링 (JSON → HTML)
+
+`region_engine.py`는 **데이터(JSON)** 만 만든다. 화면에 보여줄 **권역 진단 보고서(PR2)** 는
+`region_render_engine.py`가 그 JSON을 입력받아 standalone HTML로 렌더한다. (스코어링과 표현의 관심사 분리)
+
+```bash
+python3 engine/region_render_engine.py EU                 # latest 리포트 렌더
+python3 engine/region_render_engine.py EU 2026-06-19T1200 # 특정 버전 렌더
+```
+
+입력: `report/region/<REGION>/<REGION>_rpt_latest.json` (또는 지정 버전)
+출력: `report/region/<REGION>/<REGION>_rpt_<TS>.html` (버전 파일만 생성, latest HTML 없음)
+
+- **탭 구성(스펙 PR2):** 요약(Summary) · 시장(Market) · 규제(Regulation) · 상품(Product) · 시스템(System)
+  - 요약: 후보·퀵윈 요약 카드, 권역 인사이트, 매력도×난이도 사분면, 퀵윈 룰셋, 퀵윈 스코어링 랭킹표
+  - 시장: 매력도 비교 막대, 시장규모 시계열(실적+전망), 시장 지표 매트릭스, 인사이트
+  - 규제: 진입 게이트 점검(PASS/FLAG/FAIL) 매트릭스, 규제·세제 지표, 인사이트
+  - 상품: 금리·구매패턴·추심·담보회수 지표 매트릭스, 인사이트
+  - 시스템: IT 유사도 비교, 구축비·기간 절감 카드, 정합도 매트릭스, 인사이트
+- **데이터 주도(region-agnostic):** 항목→탭 매핑은 명시 테이블 + (role/category/키워드) 폴백으로
+  처리하여 새 항목/새 권역에도 자동 대응. 차트는 의존성 없는 인라인 SVG(인쇄·PDF 안전).
+- 디자인 토큰(색·타이포·라운드)은 `spec/design_html/DESIGN.md`(Kinetic Enterprise, 현대캐피탈)를 따른다.
+- 헤더 우측 **PDF 다운로드** 버튼 = 브라우저 인쇄(`window.print()`), 인쇄 시 전 탭 펼쳐 출력.
 
 ---
 
