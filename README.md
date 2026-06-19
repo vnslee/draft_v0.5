@@ -27,7 +27,7 @@ draft_v0.5/
 ├── engine/                         # 엔진
 │   ├── scoring_engine.py           # 단일국 점수 계산 로직
 │   ├── region_engine.py            # 권역 퀵윈 스코어링(JSON 산출)
-│   └── render_engine.py            # 권역 진단 보고서 렌더링(JSON→HTML, PR2)
+│   └── region_render_engine.py     # 권역 진단 보고서 렌더링(JSON→HTML, PR2)
 ├── report/
 │   ├── country/                    # 국가별 리포트
 │   │   ├── PL/                     # 폴란드 리포트

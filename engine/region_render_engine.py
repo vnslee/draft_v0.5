@@ -787,7 +787,7 @@ tailwind.config = {{ darkMode:"class", theme:{{ extend:{{
   </div>
   <footer class="border-t border-surface-border px-lg py-md flex flex-col md:flex-row md:items-center justify-between gap-sm shrink-0 font-label-sm text-label-sm text-text-secondary">
     <span>기반 데이터 — internal v{esc(bo.get("internal_version","-"))} · {esc(cv)}</span>
-    <span>Hyundai Capital · 권역 진단 보고서(PR2) · render_engine</span>
+    <span>Hyundai Capital · 권역 진단 보고서(PR2) · region_render_engine</span>
   </footer>
 </div>
 </div>

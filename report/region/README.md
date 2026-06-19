@@ -4,18 +4,18 @@
 나머지 국가들을 일괄 스코어링하여 **퀵윈 후보**(적은 노력으로 빠르게 성과를 낼 국가)를 산출한다.
 
 생성 엔진: `engine/region_engine.py` (단일국 엔진 `engine/scoring_engine.py`의 스코어링 로직 재사용)
-렌더 엔진: `engine/render_engine.py` (리포트 JSON → 권역 진단 보고서 HTML, 디자인 스펙 PR2)
+렌더 엔진: `engine/region_render_engine.py` (리포트 JSON → 권역 진단 보고서 HTML, 디자인 스펙 PR2)
 
 ---
 
 ## 0. 렌더링 (JSON → HTML)
 
 `region_engine.py`는 **데이터(JSON)** 만 만든다. 화면에 보여줄 **권역 진단 보고서(PR2)** 는
-`render_engine.py`가 그 JSON을 입력받아 standalone HTML로 렌더한다. (스코어링과 표현의 관심사 분리)
+`region_render_engine.py`가 그 JSON을 입력받아 standalone HTML로 렌더한다. (스코어링과 표현의 관심사 분리)
 
 ```bash
-python3 engine/render_engine.py EU                 # latest 리포트 렌더
-python3 engine/render_engine.py EU 2026-06-19T1200 # 특정 버전 렌더
+python3 engine/region_render_engine.py EU                 # latest 리포트 렌더
+python3 engine/region_render_engine.py EU 2026-06-19T1200 # 특정 버전 렌더
 ```
 
 입력: `report/region/<REGION>/<REGION>_rpt_latest.json` (또는 지정 버전)
