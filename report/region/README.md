@@ -12,12 +12,38 @@
 ```
 report/region/
 └── <REGION>/                       권역 코드 (EU | AMERICAS | APAC)
-    ├── <REGION>_rpt_<CREATED_AT>.json   조사·추천 실행 스냅샷
-    └── <REGION>_rpt_latest.json         최신 포인터 (화면이 읽음)
+    ├── index.json                  버전 매니페스트 (화면 드롭다운 소스, 엔진이 자동 갱신)
+    ├── <REGION>_rpt_<CREATED_AT>.json   조사·추천 실행 스냅샷 (불변)
+    └── <REGION>_rpt_latest.json         최신 포인터 (화면 기본값)
 예) report/region/EU/EU_rpt_2026-06-19T1200.json
 ```
 - `<CREATED_AT>` = 추천 산출 시각, 정렬형 `YYYY-MM-DDTHHmm` (콜론 제거).
 - country 리포트(`report/country/<CODE>/`)와 동일한 스냅샷+latest 규칙.
+
+### 버전 관리 — 화면에서 버전 선택
+- **선택 단위 = 보고서 스냅샷.** 엔진 실행 1회 = 불변 스냅샷 1개. 화면은 저장된 JSON을 그대로 렌더.
+- 엔진이 실행될 때마다 같은 폴더의 **`index.json`을 자동 갱신**(같은 report_id면 덮어쓰고 `created_at` 내림차순 정렬, `latest` 포인터 갱신).
+- 화면 흐름: `index.json` 읽기 → `versions[]`로 드롭다운(기본 `latest`) → 선택한 `file` 로드해 렌더.
+  → 폴더 스캔·파일명 파싱 없이 파일 1개로 드롭다운 구성. freshness 신호등(🟢🟡🔴)도 `created_at`으로 계산.
+- 각 보고서의 `based_on`(country/internal 버전 도장)으로 "이 버전이 어떤 데이터로 계산됐는지" 추적 → 재현성 확보.
+
+```jsonc
+// index.json
+{
+  "region": "EU",
+  "latest": "EU_rpt_2026-06-19T1200",          // 기본 선택 포인터
+  "versions": [                                  // created_at 내림차순
+    { "report_id": "EU_rpt_2026-06-19T1200",
+      "created_at": "2026-06-19T12:00:00+09:00",
+      "file": "EU_rpt_2026-06-19T1200.json",     // 화면이 로드할 파일
+      "report_type": "region_quickwin",
+      "based_on": { "internal_version": "1.2",
+                    "country_versions": { "DE": "DE_latest", "ES": "ES_latest", "PL": "PL_latest" } },
+      "summary": { "candidate_count": 3, "quick_wins": ["ES","DE"],
+                   "ranking": [ { "code": "ES", "rank": 1, "quick_win": true, "quick_win_score": 61.6 }, "..." ] } }
+  ]
+}
+```
 
 ## 2. 실행
 

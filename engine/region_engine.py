@@ -156,6 +156,7 @@ def run(region="EU", extra_items=None):
     with open(out, "w", encoding="utf-8") as f:
         json.dump(rpt, f, ensure_ascii=False, indent=2)
     shutil.copy(out, os.path.join(outdir, f"{region}_rpt_latest.json"))
+    update_index(outdir, region, rpt, f"{region}_rpt_{TS_FILE}.json")
 
     qw = rpt["quick_wins"]
     print(f"[{region}] 베이스라인 {bcode} | 후보 {len(rows)}개 | 퀵윈 {len(qw)}개: {qw}")
@@ -166,6 +167,43 @@ def run(region="EU", extra_items=None):
               f"({r['quadrant']}) 구축 {r['cost']['build']}")
     print(f"→ {out}")
     return rpt
+
+
+def update_index(outdir, region, rpt, filename):
+    """폴더의 index.json(버전 매니페스트) 갱신 — 화면 드롭다운 소스.
+    같은 report_id면 덮어쓰고, created_at 내림차순 정렬, latest 포인터 갱신."""
+    idx_path = os.path.join(outdir, "index.json")
+    idx = {"region": region, "latest": None, "versions": []}
+    if os.path.exists(idx_path):
+        try:
+            idx = se.load(idx_path)
+        except Exception:
+            pass
+    entry = {
+        "report_id": rpt["report_id"],
+        "created_at": rpt["created_at"],
+        "file": filename,
+        "report_type": rpt["report_type"],
+        "based_on": {
+            "internal_version": rpt["based_on"]["internal_version"],
+            "country_versions": rpt["based_on"]["country_versions"],
+        },
+        "summary": {
+            "candidate_count": rpt["candidate_count"],
+            "quick_wins": rpt["quick_wins"],
+            "ranking": [{"code": r["code"], "rank": r["rank"],
+                         "quick_win": r["quick_win"], "quick_win_score": r["quick_win_score"]}
+                        for r in rpt["ranking"]],
+        },
+    }
+    versions = [v for v in idx.get("versions", []) if v.get("report_id") != entry["report_id"]]
+    versions.append(entry)
+    versions.sort(key=lambda v: v["created_at"], reverse=True)
+    idx["region"] = region
+    idx["versions"] = versions
+    idx["latest"] = versions[0]["report_id"] if versions else None
+    with open(idx_path, "w", encoding="utf-8") as f:
+        json.dump(idx, f, ensure_ascii=False, indent=2)
 
 
 def _region_insight(region, baseline, rows):
