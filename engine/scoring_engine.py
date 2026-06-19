@@ -26,15 +26,33 @@ def find_baseline(region):
             return c
     return None
 
+# 정규화 범위. 금액 항목(시장규모)은 base 통화(EUR_M) 기준 — 항목별 단위 통일 후 적용.
 NORM_RANGE = {
-    "오토금융/리스 시장규모": (0, 2200000), "오토금융 성장률(CAGR)": (0, 12),
+    "오토금융/리스 시장규모": (0, 70000), "오토금융 성장률(CAGR)": (0, 12),
     "금융 이용률(신차)": (0, 100), "평균 금리/APR": (0, 15),
     "캡티브 강도(점유율)": (0, 100), "1위사 점유율": (0, 50),
-    "신차 판매대수": (0, 2200000), "금융 이용률(중고차)": (0, 100),
+    "신차 판매대수": (0, 3000000), "금융 이용률(중고차)": (0, 100),
     "구매 패턴(할부·리스 비중)": (0, 100), "법인세율": (0, 30),
     "이자소득 원천징수(비거주자)": (0, 30), "배당 원천징수(비거주자)": (0, 30),
     "법적 회수 소요기간": (0, 365),
 }
+
+# 통화 정규화 — internal.fx에서 주입. 비어 있으면 환산 생략(하위호환).
+FX_BASE = "EUR"
+FX_RATES = {}
+def set_fx(internal):
+    """internal.fx로 FX 테이블 주입 (CCY→base 환산율)."""
+    global FX_BASE, FX_RATES
+    fx = (internal or {}).get("fx") or {}
+    FX_BASE = fx.get("base", "EUR")
+    FX_RATES = fx.get("rates", {}) or {}
+def to_base_money(value, unit):
+    """'<CCY>_M' 단위 금액을 base 통화(예: EUR_M)로 환산. 환산 불가면 원값 반환."""
+    if isinstance(value, (int, float)) and isinstance(unit, str) and unit.endswith("_M"):
+        ccy = unit[:-2]
+        if ccy in FX_RATES:
+            return value * FX_RATES[ccy]
+    return value
 def minmax(v, lo, hi, invert=False):
     if hi==lo: return 50.0
     n=max(0,min(100,(v-lo)/(hi-lo)*100))
@@ -44,6 +62,7 @@ def grade_norm(v, invert=False):
     return round(100-n if invert else n,1)
 def normalize(item):
     v=item["value"]; name=item["item"]; inv=(item.get("direction")=="down")
+    v=to_base_money(v, item.get("unit",""))   # <CCY>_M 금액은 base 통화로 통일 후 정규화
     if name in NORM_RANGE:
         lo,hi=NORM_RANGE[name]; return minmax(v,lo,hi,inv)
     if isinstance(v,(int,float)): return grade_norm(v,inv)
@@ -165,6 +184,7 @@ def due_diligence(country, active, th=3):
 
 def run(target_code, extra_items=None):
     internal=load(f"{DATA}/internal/internal_latest.json")
+    set_fx(internal)
     cpath=f"{DATA}/country/{target_code}/{target_code}_latest.json"
     if not os.path.exists(cpath):
         raise SystemExit(f"[안내] {target_code} country 데이터 없음 — 먼저 조사(리서치)가 필요합니다.")
