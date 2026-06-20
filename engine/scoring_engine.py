@@ -53,6 +53,14 @@ def to_base_money(value, unit):
         if ccy in FX_RATES:
             return value * FX_RATES[ccy]
     return value
+def convert_ccy(value, from_ccy, to_ccy):
+    """임의 통화 간 환산. fx.rates는 'CCY→base' 비율 → from→base→to 2단계.
+    환산 불가(통화 누락)면 None. (예: PLN 단가 → USD)"""
+    if not isinstance(value, (int, float)) or from_ccy not in FX_RATES or to_ccy not in FX_RATES:
+        return None
+    if FX_RATES[to_ccy] == 0:
+        return None
+    return value * FX_RATES[from_ccy] / FX_RATES[to_ccy]  # value→base→to_ccy
 def minmax(v, lo, hi, invert=False):
     if hi==lo: return 50.0
     n=max(0,min(100,(v-lo)/(hi-lo)*100))
@@ -168,6 +176,73 @@ def discount_for(sim, brackets):
     for b in brackets:
         if b["min"]<=sim<=b["max"]: return b["discount"]
     return 0.0
+
+def estimate_volume(country, internal):
+    """신규 진출국 예상 계약 건수를 country 로우데이터에서 파생.
+    건수 = 신차판매대수 × 금융이용률(신차)/100 × target_market_share.
+    재료 항목이 없으면 None. (건수를 internal에 박지 않고 조사 데이터에서 파생하기 위함)"""
+    va = internal.get("volume_assumptions") or {}
+    share = va.get("target_market_share")
+    if not share:
+        return None
+    im = items_map(country)
+    sales = (im.get("신차 판매대수") or {}).get("value")
+    fin = (im.get("금융 이용률(신차)") or {}).get("value")
+    if not isinstance(sales, (int, float)) or not isinstance(fin, (int, float)):
+        return None
+    return round(sales * (fin / 100.0) * share)
+
+def netsol_opex(country, internal):
+    """전사 누적 건수 티어 기반 구독료 — 신규국 진입의 '증분(incremental)' IT 운영비 계산.
+    솔루션이 티어표(solution_pricing) 대상이 아니거나 건수 추정 불가면 None.
+    - 건수는 country 로우데이터에서 파생(estimate_volume).
+    - flat 모델: 누적건수가 속한 구간의 단가를 전 건수에 일괄 적용.
+    - 독립 평가(A): deployed_volume 풀(진입 전 전사)을 고정하고, 신규국만 추가될 때의 증분.
+      → 후보 간 비교가 공정하도록 순서 의존성 제거(순차 누적 아님).
+    반환: 증분(메인) + 단순안분·기존국 spillover(참고) + 풀/단가 내역."""
+    va = internal.get("volume_assumptions") or {}
+    solution = va.get("solution_country")
+    pricing = internal.get("solution_pricing", {}).get(solution)
+    if not pricing:
+        return None
+    if pricing.get("model", "flat") != "flat":
+        return None  # marginal 등은 추후 확장
+    new_vol = estimate_volume(country, internal)
+    if not new_vol:
+        return None
+    code = country.get("code")
+    tiers = pricing["tiers"]
+    def unit(v):  # flat: 누적건수 v가 속한 구간의 단가
+        for t in tiers:
+            if v >= t["min"] and (t["max"] is None or v <= t["max"]):
+                return t["unit_price"]
+        return tiers[-1]["unit_price"]  # 상한 초과 시 최상위 구간 단가
+    deployed = internal.get("deployed_volume", {}).get(solution, {})
+    pool_before = sum(v for k, v in deployed.items() if k != code)  # 자기 자신 제외(중복 방지)
+    pool_after = pool_before + new_vol
+    u_before, u_after = unit(pool_before), unit(pool_after)
+    cost_before = round(pool_before * u_before, 1)
+    cost_after = round(pool_after * u_after, 1)
+    incremental = round(cost_after - cost_before, 1)          # 메인: 진입의 실제 추가 비용
+    allocated = round(new_vol * u_after, 1)                   # 참고: 단순 안분
+    existing_savings = round(pool_before * (u_after - u_before), 1)  # 참고: 기존국 spillover(보통 음수)
+    im = items_map(country)
+    return {
+        "solution": solution, "currency": pricing["currency"], "model": "flat",
+        "new_volume": new_vol,
+        "volume_basis": {  # 건수가 어떻게 파생됐는지(투명성 — 하드코딩 아님)
+            "sales": (im.get("신차 판매대수") or {}).get("value"),
+            "financed_pct": (im.get("금융 이용률(신차)") or {}).get("value"),
+            "target_market_share": (internal.get("volume_assumptions") or {}).get("target_market_share"),
+        },
+        "pool_before": pool_before, "pool_after": pool_after,
+        "unit_before": u_before, "unit_after": u_after,
+        "cost_before": cost_before, "cost_after": cost_after,
+        "incremental_yr": incremental,        # ★ 메인 지표
+        "allocated_yr": allocated,            # 참고
+        "existing_savings_yr": existing_savings,  # 참고(음수=기존국 절감)
+        "tier_changed": u_after != u_before,
+    }
 def quadrant(a,d):
     return ("즉시 진출" if a>=50 and d<50 else "선별 진출" if a>=50 else "기회 탐색" if d<50 else "JV/제휴 필요")
 def eval_gates(country, active):
@@ -207,6 +282,7 @@ def run(target_code, extra_items=None):
     build=round(asset["build_cost"]*(1-disc),1)
     months=round(asset["build_months"]*(1-disc*0.7),1)
     maint=round(build*internal["maintenance_rate"],1)
+    sub=netsol_opex(target, internal)  # 전사 누적건수 티어 구독료(증분). 대상 아니면 None
     pass_,checks=eval_gates(target, active)
     ts=target.get("fetched_at","").replace(":","").replace("-","").replace("+0900","")[:13] or "ver"
     rpt={
@@ -223,7 +299,9 @@ def run(target_code, extra_items=None):
                     "contributions":bc,"confidence":tier_conf(bt)}]},
         "it":{"baseline":bcode,"ranking":[{"code":target_code,"rank":1,"similarity":S,
                     "cost":{"baseline":bcode,"baseline_build":asset["build_cost"],"discount":disc,
-                            "build":build,"months":months,"maintenance_yr":maint,"unit":"GBP_M(데모)"},
+                            "build":build,"months":months,"maintenance_yr":maint,"unit":"GBP_M(데모)",
+                            "subscription":sub,
+                            "it_opex_yr":round(maint+(sub["incremental_yr"] if sub else 0),1)},
                     "contributions":ic,"confidence":tier_conf(it_t)}]},
         "integrated":{"note":"합성점수 없음 — 2축 매트릭스 + 사분면",
                     "ranking":[{"code":target_code,"rank":1,"attractiveness":A,"difficulty":D,"similarity":S,

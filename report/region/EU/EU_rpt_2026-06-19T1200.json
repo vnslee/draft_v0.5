@@ -18,6 +18,7 @@
       "EU": "UK_latest"
     },
     "internal_version": "1.2",
+    "region_insight_source": "ai",
     "schema_version": "1.0"
   },
   "quick_win_rules": {
@@ -34,7 +35,77 @@
     },
     "note": "퀵윈 = 게이트 통과 + 점수 임계 충족. ease = (100 - difficulty). 베이스라인 재사용률(유사도) 최우선 가중."
   },
-  "region_insight": "EU 권역 3개 후보 중 퀵윈 2개: 스페인(ES), 독일(DE). 영국 베이스라인 재사용률(유사도) 기반으로 구축비·기간 절감폭이 커 우선 진입 적합. 최우선은 스페인(ES) — 유사도 82.2, 구축비 3000.0(40% 절감), 매력도 49.3.",
+  "region_insight": "EU 권역은 ECB 예치금리 2.00% 안정(2025년 연중 4회 인하)으로 자동차금융 수요 환경이 우호적이나, 시장별 성숙도와 캡티브 집중도가 크게 갈린다. 영국(UK) 베이스라인 대비 IT 재사용률이 높은 스페인(ES, 유사도 82.2)과 독일(DE, 64.0)이 퀵윈으로, 구축비·기간 절감폭이 커 우선 진입 적합하다. 다만 사분면상 독일은 '즉시 진출'(매력 55.9·난이도 42.5)인 반면 스페인은 매력도 49.3으로 'JV/제휴 필요' 구간이라, 스페인은 렌팅·플릿 우선 진입 후 단계적 확장이 현실적이다. 폴란드(PL)는 성장률(CAGR 10.9%)·매력도는 권역 최상위지만 은행계 리스 집중도와 진입난이도 71.2로 퀵윈에서 제외돼 선별 진출 대상이다. 권역 공통 리스크는 (1)2026년 소비자신용 금리상한 규제 변화(ES 신소비자신용법, PL 비이자비용 상한)와 (2)BEV 잔존가치 변동에 따른 리스·벌룬 상품 리스크다. 권장 시퀀스: 독일 다이렉트·중고 틈새로 즉시 진입 → 스페인 렌팅 우선 → 폴란드는 규제·집중도 실사 후 선별 진입.",
+  "region_insight_source": "ai",
+  "region_primary_risk": {
+    "title": "2026 소비자신용 금리상한 규제 변화",
+    "detail": "스페인 신소비자신용법(한시 22% TAE 상한, 영구 메커니즘 BdE 분기 평균+마진)과 폴란드 비이자비용 상한이 2026년 발효·확대. 상품 APR 로직에 국가별 동적 상한 분기 필요 — 권역 공통 컴플라이언스 리스크."
+  },
+  "region_news": [
+    {
+      "date": "2026-06-05",
+      "title": "ECB holds deposit rate at 2.00% as euro-zone disinflation steadies",
+      "summary": "ECB가 예치금리를 2.00%로 동결, 2025년 4회 인하 후 완화 사이클 종료 신호로 자동차금융 조달비용 안정.",
+      "category": "finance",
+      "source": "Financial Times",
+      "url": "https://www.ft.com/",
+      "impact": "positive",
+      "countries": [
+        "ALL"
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "title": "EU new-car BEV share tops 19% as leasing fleets accelerate electrification",
+      "summary": "EU 신차 BEV 점유율 19% 돌파, 렌팅·플릿 전동화 가속 — 잔존가치 리스크가 리스 상품 핵심 변수로 부상.",
+      "category": "auto_market",
+      "source": "Automotive News Europe",
+      "url": "https://europe.autonews.com/",
+      "impact": "neutral",
+      "countries": [
+        "DE",
+        "ES",
+        "PL"
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "title": "Manheim Europe used-vehicle values soften on EV oversupply",
+      "summary": "유럽 중고차 잔가지수 하락, EV 공급 과잉으로 벌룬·리스 잔가 설정 보수화 필요.",
+      "category": "auto_finance",
+      "source": "Cox Automotive / Manheim",
+      "url": "https://www.coxautoinc.com/market-insights/",
+      "impact": "negative",
+      "countries": [
+        "DE",
+        "ES"
+      ]
+    },
+    {
+      "date": "2026-04-30",
+      "title": "Moody's: European auto ABS delinquencies tick up but remain below pre-2020 levels",
+      "summary": "유럽 오토 ABS 연체율 소폭 상승했으나 팬데믹 이전보다 낮아 자산건전성 양호 — 신규 진입 신용환경 우호적.",
+      "category": "credit_abs",
+      "source": "Moody's",
+      "url": "https://www.moodys.com/",
+      "impact": "positive",
+      "countries": [
+        "ALL"
+      ]
+    },
+    {
+      "date": "2026-04-12",
+      "title": "Spain's new consumer-credit law sets temporary 22% APR cap",
+      "summary": "스페인 신소비자신용법 발효, 한시 22% TAE 상한 도입 — 소비자 자동차금융 상품 설계 제약.",
+      "category": "finance",
+      "source": "Reuters",
+      "url": "https://www.reuters.com/",
+      "impact": "negative",
+      "countries": [
+        "ES"
+      ]
+    }
+  ],
   "quick_wins": [
     "ES",
     "DE"
@@ -56,19 +127,41 @@
       "confidence": "중",
       "cost": {
         "baseline": "UK",
-        "baseline_build": 5000,
+        "baseline_build": 80,
         "discount": 0.4,
-        "build": 3000.0,
+        "build": 48.0,
         "months": 13.0,
-        "maintenance_yr": 540.0,
-        "unit": "GBP_M(데모)"
+        "maintenance_yr": 8.6,
+        "unit": "GBP_M(데모)",
+        "subscription": {
+          "solution": "NetSol",
+          "currency": "USD",
+          "model": "flat",
+          "new_volume": 1241,
+          "volume_basis": {
+            "sales": 1148650,
+            "financed_pct": 60,
+            "target_market_share": 0.0018
+          },
+          "pool_before": 3000,
+          "pool_after": 4241,
+          "unit_before": 1.0,
+          "unit_after": 1.0,
+          "cost_before": 3000.0,
+          "cost_after": 4241.0,
+          "incremental_yr": 1241.0,
+          "allocated_yr": 1241.0,
+          "existing_savings_yr": 0.0,
+          "tier_changed": false
+        },
+        "it_opex_yr": 1249.6
       },
       "quick_win_reasons": [
         "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
         "유사도 82.2 → 베이스라인 재사용률 높아 구축비·기간 절감폭 큼"
       ],
       "blockers": [],
-      "verdict": "퀵윈 후보 — 사분면 'JV/제휴 필요', 영국 대비 유사도 82.2로 40% 절감(구축 3000.0, 13.0개월).",
+      "verdict": "퀵윈 후보 — 사분면 'JV/제휴 필요', 영국 대비 유사도 82.2로 40% 절감(구축 48.0, 13.0개월).",
       "country_meta": {
         "country": "Spain",
         "country_ko": "스페인",
@@ -938,12 +1031,34 @@
       "confidence": "중",
       "cost": {
         "baseline": "UK",
-        "baseline_build": 5000,
+        "baseline_build": 80,
         "discount": 0.2,
-        "build": 4000.0,
+        "build": 64.0,
         "months": 15.5,
-        "maintenance_yr": 720.0,
-        "unit": "GBP_M(데모)"
+        "maintenance_yr": 11.5,
+        "unit": "GBP_M(데모)",
+        "subscription": {
+          "solution": "NetSol",
+          "currency": "USD",
+          "model": "flat",
+          "new_volume": 3909,
+          "volume_basis": {
+            "sales": 2857591,
+            "financed_pct": 76,
+            "target_market_share": 0.0018
+          },
+          "pool_before": 3000,
+          "pool_after": 6909,
+          "unit_before": 1.0,
+          "unit_after": 0.9,
+          "cost_before": 3000.0,
+          "cost_after": 6218.1,
+          "incremental_yr": 3218.1,
+          "allocated_yr": 3518.1,
+          "existing_savings_yr": -300.0,
+          "tier_changed": true
+        },
+        "it_opex_yr": 3229.6
       },
       "quick_win_reasons": [
         "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",
@@ -952,7 +1067,7 @@
         "진입난이도 42.5 낮음"
       ],
       "blockers": [],
-      "verdict": "퀵윈 후보 — 사분면 '즉시 진출', 영국 대비 유사도 64.0로 20% 절감(구축 4000.0, 15.5개월).",
+      "verdict": "퀵윈 후보 — 사분면 '즉시 진출', 영국 대비 유사도 64.0로 20% 절감(구축 64.0, 15.5개월).",
       "country_meta": {
         "country": "Germany",
         "country_ko": "독일",
@@ -1898,12 +2013,34 @@
       "confidence": "중",
       "cost": {
         "baseline": "UK",
-        "baseline_build": 5000,
+        "baseline_build": 80,
         "discount": 0.3,
-        "build": 3500.0,
+        "build": 56.0,
         "months": 14.2,
-        "maintenance_yr": 630.0,
-        "unit": "GBP_M(데모)"
+        "maintenance_yr": 10.1,
+        "unit": "GBP_M(데모)",
+        "subscription": {
+          "solution": "NetSol",
+          "currency": "USD",
+          "model": "flat",
+          "new_volume": 699,
+          "volume_basis": {
+            "sales": 597400,
+            "financed_pct": 65,
+            "target_market_share": 0.0018
+          },
+          "pool_before": 3000,
+          "pool_after": 3699,
+          "unit_before": 1.0,
+          "unit_after": 1.0,
+          "cost_before": 3000.0,
+          "cost_after": 3699.0,
+          "incremental_yr": 699.0,
+          "allocated_yr": 699.0,
+          "existing_savings_yr": 0.0,
+          "tier_changed": false
+        },
+        "it_opex_yr": 709.1
       },
       "quick_win_reasons": [
         "필수 게이트 전부 통과 — 구조적 진입 장벽 없음",

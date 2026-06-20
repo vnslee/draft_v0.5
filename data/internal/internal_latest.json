@@ -3,9 +3,32 @@
   "updated_at": "2026-06-01T00:00:00+09:00",
 
   "country_assets": {
-    "UK":  { "solution": "NetSol",     "build_cost": 5000, "build_months": 18, "reuse_factor": 0.70 },
+    "UK":  { "solution": "NetSol",     "build_cost": 80, "build_months": 18, "reuse_factor": 0.70, "expected_volume": 3000 },
     "USA": { "solution": "Salesforce", "build_cost": 6000, "build_months": 20, "reuse_factor": 0.50 },
     "AU":  { "solution": "Self-built",  "build_cost": 4500, "build_months": 16, "reuse_factor": 1.00 }
+  },
+
+  "solution_pricing": {
+    "NetSol": {
+      "model": "flat",
+      "currency": "USD",
+      "tiers": [
+        { "min": 0,    "max": 5000,  "unit_price": 1.0 },
+        { "min": 5001, "max": 10000, "unit_price": 0.9 }
+      ],
+      "note": "계약 건당 연 구독료(간이값, 포맷 확정 후 정확히 업데이트). 전사(전 사용국) 누적 건수로 티어 결정. model=flat → 도달 구간 단가를 전 건수에 일괄 적용. 사람이 관리."
+    }
+  },
+
+  "deployed_volume": {
+    "NetSol": { "UK": 3000 },
+    "note": "이미 해당 솔루션을 운영 중인 국가별 연 계약 건수(전사 풀). 신규국 추정 건수가 여기 더해져 티어가 재산정됨. 권역 보고서는 이 풀을 고정한 독립 평가(A 방식). 사람이 관리(운영 실적)."
+  },
+
+  "volume_assumptions": {
+    "solution_country": "NetSol",
+    "target_market_share": 0.0018,
+    "note": "신규 진출국 예상 계약 건수 = 신차판매대수 × 금융이용률(신차)/100 × target_market_share. 건수는 country 로우데이터에서 파생(internal에 박지 않음). target_market_share는 우리 사업 가정(시장데이터 아님) — 국가 무관 단일 가정, 사람이 관리. solution_country: NetSol 솔루션 신규국에만 추정 적용. UK 실적 3000건 역산값(0.175%)을 0.18%로 간이 반올림."
   },
 
   "similarity_brackets": [

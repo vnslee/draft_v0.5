@@ -36,6 +36,19 @@ def list_region_countries(region):
     return out
 
 
+def load_region_insight(region):
+    """region_prompt 산출물(권역 AI 인사이트/뉴스)을 읽는다.
+    data/region/<REGION>/<REGION>_insight.json (없으면 None → 엔진 자동생성 fallback)."""
+    path = f"{DATA}/region/{region}/{region}_insight.json"
+    if not os.path.exists(path):
+        return None
+    try:
+        return se.load(path)
+    except Exception as e:
+        print(f"[경고] {path} 로드 실패 — 자동생성 인사이트로 대체: {e}")
+        return None
+
+
 def quick_win_eval(qrules, A, D, S, gate_passed, has_flag):
     w = qrules["weights"]; th = qrules["thresholds"]
     ease = round(100 - D, 1)
@@ -86,6 +99,9 @@ def run(region="EU", extra_items=None):
         build = round(asset["build_cost"] * (1 - disc), 1)
         months = round(asset["build_months"] * (1 - disc * 0.7), 1)
         maint = round(build * internal["maintenance_rate"], 1)
+        # 전사 누적건수 티어 구독료(증분). A 방식: 베이스라인 풀 고정, 후보 독립 평가.
+        # 건수는 country 로우데이터(판매량×금융이용률×목표점유율)에서 파생.
+        sub = se.netsol_opex(c, internal)
         passed, checks = se.eval_gates(c, active)
         has_flag = any(ck["result"] == "FLAG" for ck in checks)
         if not passed:
@@ -105,7 +121,9 @@ def run(region="EU", extra_items=None):
             "confidence": se.tier_conf(bt + itt),
             "cost": {"baseline": bcode, "baseline_build": asset["build_cost"],
                      "discount": disc, "build": build, "months": months,
-                     "maintenance_yr": maint, "unit": "GBP_M(데모)"},
+                     "maintenance_yr": maint, "unit": "GBP_M(데모)",
+                     "subscription": sub,
+                     "it_opex_yr": round(maint + (sub["incremental_yr"] if sub else 0), 1)},
             "quick_win_reasons": reasons, "blockers": blockers,
             "verdict": (f"퀵윈 후보 — 사분면 '{quad}', {baseline['country_ko']} 대비 유사도 {S}로 "
                         f"{int(disc*100)}% 절감(구축 {build}, {months}개월)."
@@ -126,7 +144,17 @@ def run(region="EU", extra_items=None):
     for i, r in enumerate(rows, 1):
         r["rank"] = i
 
-    region_insight = _region_insight(region, baseline, rows)
+    # 권역 AI 인사이트/뉴스 병합 (region_prompt 산출물). 없으면 엔진 자동생성 fallback.
+    ai = load_region_insight(region)
+    if ai and ai.get("region_insight"):
+        region_insight = ai["region_insight"]
+        insight_source = "ai"
+    else:
+        region_insight = _region_insight(region, baseline, rows)
+        insight_source = "engine_auto"
+    region_primary_risk = ai.get("region_primary_risk") if ai else None
+    region_news = ai.get("region_news", []) if ai else []
+
     rpt = {
         "report_id": f"{region}_rpt_{TS_FILE}",
         "report_type": "region_quickwin",
@@ -140,10 +168,14 @@ def run(region="EU", extra_items=None):
             "country_versions": cversions,
             "baseline_versions": {region: f"{bcode}_latest"},
             "internal_version": internal.get("version"),
+            "region_insight_source": insight_source,
             "schema_version": "1.0",
         },
         "quick_win_rules": qrules,
         "region_insight": region_insight,
+        "region_insight_source": insight_source,
+        "region_primary_risk": region_primary_risk,
+        "region_news": region_news,
         "quick_wins": [r["code"] for r in rows if r["quick_win"]],
         "ranking": [{k: r[k] for k in (
             "code", "country_ko", "rank", "quick_win", "quick_win_score",
@@ -166,7 +198,9 @@ def run(region="EU", extra_items=None):
     update_index(outdir, region, rpt, f"{region}_rpt_{TS_FILE}.json")
 
     qw = rpt["quick_wins"]
-    print(f"[{region}] 베이스라인 {bcode} | 후보 {len(rows)}개 | 퀵윈 {len(qw)}개: {qw}")
+    print(f"[{region}] 베이스라인 {bcode} | 후보 {len(rows)}개 | 퀵윈 {len(qw)}개: {qw}"
+          f" | 인사이트 출처: {insight_source}"
+          + (f", 뉴스 {len(region_news)}건" if region_news else ""))
     for r in rows:
         mark = "★퀵윈" if r["quick_win"] else "  "
         print(f"  {r['rank']}. {r['code']} {mark} QW={r['quick_win_score']} "
